@@ -12,6 +12,7 @@ Multiplayer platformer twitch-shooter
   
   
 # Dependencies
+- C++11
 - Box2D
 - LUA v5.3
 - SFML
