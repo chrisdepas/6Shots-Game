@@ -1,0 +1,232 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{D76B1CAB-3A5F-413E-A6D0-B35F6C0C1DEF}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>My6Shots</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>SFML_STATIC;WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>C:\luawin32\include;..\..\boost\boost_1_63_0;..\..\Box2D-master\include;..\..\SFML-2.3.2\include;..\..\TGUI-0.7\include;..\..\rapidxml-1.13;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>C:\luawin32\lib;..\..\boost\boost_1_63_0\stage\lib;..\..\Box2D-master\lib;..\..\TGUI-0.7\lib;..\..\SFML-2.3.2\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>sfml-window-s-d.lib;sfml-system-s-d.lib;sfml-graphics-s-d.lib;sfml-audio-s-d.lib;sfml-network-s-d.lib;opengl32.lib;freetype.lib;jpeg.lib;winmm.lib;gdi32.lib;openal32.lib;flac.lib;vorbisenc.lib;vorbisfile.lib;vorbis.lib;ogg.lib;ws2_32.lib;tgui-s-d.lib;Box2D-d.lib;lua53.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>SFML_STATIC;WIN32;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>C:\luawin32\include;..\..\boost\boost_1_63_0;..\..\Box2D-master\include;..\..\SFML-2.3.2\include;..\..\TGUI-0.7\include;..\..\rapidxml-1.13;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalLibraryDirectories>C:\luawin32\lib;..\..\boost\boost_1_63_0\stage\lib;..\..\Box2D-master\lib;..\..\TGUI-0.7\lib;..\..\SFML-2.3.2\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>sfml-window-s.lib;sfml-graphics-s.lib;sfml-system-s.lib;sfml-main.lib;sfml-audio-s.lib;sfml-network-s.lib;winmm.lib;ws2_32.lib;openal32.lib;flac.lib;vorbisenc.lib;vorbisfile.lib;vorbis.lib;ogg.lib;gdi32.lib;opengl32.lib;freetype.lib;jpeg.lib;tgui-s.lib;Box2D.lib;lua53.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <Text Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="C6SDevTestGM.h" />
+    <ClInclude Include="C6SMapMakerState.h" />
+    <ClInclude Include="C6SMapTile.h" />
+    <ClInclude Include="6SWeapons.h" />
+    <ClInclude Include="Actions.h" />
+    <ClInclude Include="ASSETS.h" />
+    <ClInclude Include="C6SDevState.h" />
+    <ClInclude Include="C6SMap.h" />
+    <ClInclude Include="C6SMenuState.h" />
+    <ClInclude Include="C6SMultiplayerGameState.h" />
+    <ClInclude Include="C6SMultiplayerMinigameState.h" />
+    <ClInclude Include="C6SMultiplayerState.h" />
+    <ClInclude Include="C6SNetwork.h" />
+    <ClInclude Include="C6SNetworkedPlayer.h" />
+    <ClInclude Include="C6SBaseNetworkedWeapon.h" />
+    <ClInclude Include="C6SPacket.h" />
+    <ClInclude Include="C6SPlayer.h" />
+    <ClInclude Include="C6SSettingsState.h" />
+    <ClInclude Include="C6SSingleplayerMinigameState.h" />
+    <ClInclude Include="CAnimatedSprite.h" />
+    <ClInclude Include="CBaseCombatEntity.h" />
+    <ClInclude Include="CBaseEntity.h" />
+    <ClInclude Include="CBaseMeleeWeapon.h" />
+    <ClInclude Include="CBaseNPC.h" />
+    <ClInclude Include="CBaseProjectileWeapon.h" />
+    <ClInclude Include="CBaseThrowableWeapon.h" />
+    <ClInclude Include="CBaseWeapon.h" />
+    <ClInclude Include="CClient.h" />
+    <ClInclude Include="CDebugLogger.h" />
+    <ClInclude Include="CDrawingManager.h" />
+    <ClInclude Include="CEncryption.h" />
+    <ClInclude Include="CEntityManager.h" />
+    <ClInclude Include="CEntityPhysics.h" />
+    <ClInclude Include="CEventManager.h" />
+    <ClInclude Include="CEventScheduler.h" />
+    <ClInclude Include="CGame.h" />
+    <ClInclude Include="CGameState.h" />
+    <ClInclude Include="CGameStateHandler.h" />
+    <ClInclude Include="CGlobal.h" />
+    <ClInclude Include="CChatList.h" />
+    <ClInclude Include="CGlobalVars.h" />
+    <ClInclude Include="CGoreEngine.h" />
+    <ClInclude Include="CIniItem.h" />
+    <ClInclude Include="CIniReader.h" />
+    <ClInclude Include="CIniWriter.h" />
+    <ClInclude Include="CInput.h" />
+    <ClInclude Include="CLuaLink.h" />
+    <ClInclude Include="CNetVar.h" />
+    <ClInclude Include="CNetVarFactory.h" />
+    <ClInclude Include="CParticleEmitter.h" />
+    <ClInclude Include="CPhysicsDebugDraw.h" />
+    <ClInclude Include="CPlayerHand.h" />
+    <ClInclude Include="CPlayerPhysics.h" />
+    <ClInclude Include="CProjectile.h" />
+    <ClInclude Include="CProjectileManager.h" />
+    <ClInclude Include="CBaseProp.h" />
+    <ClInclude Include="CRandom.h" />
+    <ClInclude Include="CServer.h" />
+    <ClInclude Include="CSettings.h" />
+    <ClInclude Include="CShaderEffect.h" />
+    <ClInclude Include="CSoundItem.h" />
+    <ClInclude Include="CSoundManager.h" />
+    <ClInclude Include="CSpentCasingEffect.h" />
+    <ClInclude Include="CTickRate.h" />
+    <ClInclude Include="CTime.h" />
+    <ClInclude Include="CTutorialNPC.h" />
+    <ClInclude Include="CWindowManager.h" />
+    <ClInclude Include="CWorldPhysics.h" />
+    <ClInclude Include="DebugUtil.h" />
+    <ClInclude Include="IEventListener.h" />
+    <ClInclude Include="INetworkListener.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="targetver.h" />
+    <ClInclude Include="Util.h" />
+    <ClInclude Include="Vector.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="6Shots.cpp" />
+    <ClCompile Include="6SWeapons.cpp" />
+    <ClCompile Include="C6SDevState.cpp" />
+    <ClCompile Include="C6SDevTestGM.cpp" />
+    <ClCompile Include="C6SMap.cpp" />
+    <ClCompile Include="C6SMapMakerState.cpp" />
+    <ClCompile Include="C6SMenuState.cpp" />
+    <ClCompile Include="C6SMultiplayerGameState.cpp" />
+    <ClCompile Include="C6SMultiplayerMinigameState.cpp" />
+    <ClCompile Include="C6SMultiplayerState.cpp" />
+    <ClCompile Include="C6SNetwork.cpp" />
+    <ClCompile Include="C6SNetworkedPlayer.cpp" />
+    <ClCompile Include="C6SPacket.cpp" />
+    <ClCompile Include="C6SPlayer.cpp" />
+    <ClCompile Include="C6SSettingsState.cpp" />
+    <ClCompile Include="C6SSingleplayerMinigameState.cpp" />
+    <ClCompile Include="CAnimatedSprite.cpp" />
+    <ClCompile Include="CBaseCombatEntity.cpp" />
+    <ClCompile Include="CBaseEntity.cpp" />
+    <ClCompile Include="CBaseNPC.cpp" />
+    <ClCompile Include="CBaseProjectileWeapon.cpp" />
+    <ClCompile Include="CBaseWeapon.cpp" />
+    <ClCompile Include="CChatList.cpp" />
+    <ClCompile Include="CClient.cpp" />
+    <ClCompile Include="CDebugLogger.cpp" />
+    <ClCompile Include="CDrawingManager.cpp" />
+    <ClCompile Include="CEntityManager.cpp" />
+    <ClCompile Include="CEntityPhysics.cpp" />
+    <ClCompile Include="CEventManager.cpp" />
+    <ClCompile Include="CEventScheduler.cpp" />
+    <ClCompile Include="CGame.cpp" />
+    <ClCompile Include="CGameStateHandler.cpp" />
+    <ClCompile Include="CGlobal.cpp" />
+    <ClCompile Include="CGoreEngine.cpp" />
+    <ClCompile Include="CIniItem.cpp" />
+    <ClCompile Include="CIniReader.cpp" />
+    <ClCompile Include="CIniWriter.cpp" />
+    <ClCompile Include="CInput.cpp" />
+    <ClCompile Include="CLuaLink.cpp" />
+    <ClCompile Include="CNetVar.cpp" />
+    <ClCompile Include="CNetVarFactory.cpp" />
+    <ClCompile Include="CParticleEmitter.cpp" />
+    <ClCompile Include="CPhysicsDebugDraw.cpp" />
+    <ClCompile Include="CPlayerHand.cpp" />
+    <ClCompile Include="CPlayerPhysics.cpp" />
+    <ClCompile Include="CProjectile.cpp" />
+    <ClCompile Include="CProjectileManager.cpp" />
+    <ClCompile Include="CRandom.cpp" />
+    <ClCompile Include="CServer.cpp" />
+    <ClCompile Include="CSettings.cpp" />
+    <ClCompile Include="CSoundItem.cpp" />
+    <ClCompile Include="CSoundManager.cpp" />
+    <ClCompile Include="CSpentCasingEffect.cpp" />
+    <ClCompile Include="CTickRate.cpp" />
+    <ClCompile Include="CTime.cpp" />
+    <ClCompile Include="CWindowManager.cpp" />
+    <ClCompile Include="CWorldPhysics.cpp" />
+    <ClCompile Include="stdafx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Util.cpp" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
