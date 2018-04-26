@@ -22,3 +22,10 @@ Multiplayer platformer twitch-shooter
 
 # Building / Running
 visual c++ for now
+
+# Screenshots
+![Map Editor](EditMap.png "The Map Editor")
+
+![Lobby](ServerScreenshot.png "Hosting / Joining a Multiplayer Server")
+
+![Singleplayer](Singleplayer-Screenshot.png "Singleplayer mode, with weapons weapons")
