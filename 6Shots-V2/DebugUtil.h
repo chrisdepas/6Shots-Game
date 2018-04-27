@@ -15,7 +15,7 @@ Usage:
 */
 
 #ifdef NDEBUG
-	#define DbgAssertMsg(ignore, ignore) ((void)0)
+	#define DbgAssertMsg(ignore, _ignore) ((void)0)
 	#define DbgAssert(ignore) ((void)0)
 #else 
 

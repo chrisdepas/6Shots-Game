@@ -33,10 +33,7 @@ class C6SDevState : public CGameState {
 	CLuaLink m_LuaLink;
 
 public:
-
-	// Load LUA Gamemode
-
-
+	
 	void C6SDevState::Init(CGame* pGame);
 	void C6SDevState::Cleanup(CGame* pGame);
 
@@ -47,8 +44,7 @@ public:
 	void C6SDevState::PauseState();
 	void C6SDevState::ResumeState();
 
-	static C6SDevState* Instance()
-	{
+	static C6SDevState* Instance() {
 		static C6SDevState devState;
 		return &devState;
 	}

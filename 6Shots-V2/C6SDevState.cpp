@@ -29,7 +29,7 @@ void C6SDevState::Init(CGame* pGame) {
 		m_Physics.ParseWorldMap(&m_Map);
 
 		//  player
-		m_Player.Initialize(&m_Physics, ASSET_PLAYER_TEXTURE, ASSET_PLAYER_HAND, 10, 100, 64, 32, PLAYER_JUMPSPEED, PLAYER_MOVESPEED, m_Map.GetSpawn(pGame));
+		m_Player.Initialize(&m_Physics, ASSET_PLAYER_TEXTURE, ASSET_PLAYER_HAND, 10, 32, 64, 32, PLAYER_JUMPSPEED, PLAYER_MOVESPEED, m_Map.GetSpawn(pGame));
 
 		// Weapons
 		C6SKnife* knife = new C6SKnife();
@@ -40,13 +40,17 @@ void C6SDevState::Init(CGame* pGame) {
 		ak->Init(&m_Physics, Vector2f(100, 1000), pGame);
 		m_EntMgr.AddWeapon(ak);
 
-		C6SSawnOff* sawn = new C6SSawnOff();
-		sawn->Init(&m_Physics, Vector2i(400, 950), pGame);
-		m_EntMgr.AddWeapon(sawn);
+		//C6SSawnOff* sawn = new C6SSawnOff();
+		//sawn->Init(&m_Physics, Vector2i(400, 950), pGame);
+		//m_EntMgr.AddWeapon(sawn);
 
 		C6SRevolver* rev = new C6SRevolver();
 		rev->Init(&m_Physics, Vector2i(900, 1000), pGame);
 		m_EntMgr.AddWeapon(rev);
+
+		C6SRevolver* rev2 = new C6SRevolver();
+		rev2->Init(&m_Physics, Vector2i(300, 400), pGame);
+		m_EntMgr.AddWeapon(rev2);
 
 		C6STMP* tmp = new C6STMP();
 		tmp->Init(&m_Physics, Vector2i(650, 1000), pGame);
@@ -56,7 +60,7 @@ void C6SDevState::Init(CGame* pGame) {
 		m_Gore.Init(ASSET_FLOOR_BLOOD_TEXTURE, &m_Physics);
 
 		// init lua SDK
-		m_LuaLink.InitLua();
+		/*m_LuaLink.InitLua();
 		m_LuaLink.SetSDKInformation("6Shots", 0, 1);
 		m_LuaLink.RegisterCFunc("testmsg", Msg, "Description");
 		char* val;
@@ -66,16 +70,13 @@ void C6SDevState::Init(CGame* pGame) {
 		}
 		else {
 			printf("CallExtScriptFunctionStr failed\n");
-		}
-
-		// Init lua scripting craponi
-
+		}*/
 	
 		CBaseNPC* npc = new CBaseNPC();
 		npc->Initialize(&m_Physics, ASSET_NPC_TEXTURE, ASSET_PLAYER_HAND, 10, 25, 64, 32, PLAYER_JUMPSPEED, PLAYER_MOVESPEED, m_Map.GetSpawn(pGame));
 		m_EntMgr.AddNPC(npc);
 
-		m_LuaLink.PrintSDK();
+		//m_LuaLink.PrintSDK();
 	}
 
 	/* Reset elapsed time */
@@ -92,7 +93,7 @@ void C6SDevState::Init(CGame* pGame) {
 }
 
 void C6SDevState::Cleanup(CGame* pGame){
-	m_LuaLink.DestroyLua();
+//	m_LuaLink.DestroyLua();
 }
 
 void C6SDevState::Draw(CGame* pGame){

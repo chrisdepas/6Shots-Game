@@ -167,7 +167,7 @@ void C6STMP::Init(CWorldPhysics* pPhysics, Vector2i pos, CGame* pGame) {
 	m_vCasingOffset.X = 10;
 	m_vCasingOffset.Y = -4;
 
-	m_iFireSpeed = 50000;
+	m_iFireSpeed = 5000;
 
 	m_iBulletDamage = 20;
 
@@ -180,16 +180,17 @@ void C6STMP::Init(CWorldPhysics* pPhysics, Vector2i pos, CGame* pGame) {
 	m_vLocation.X = (float)pos.X;
 	m_vLocation.Y = (float)pos.Y;
 
-	m_iPrimaryClip = m_iPrimaryClipMax = 30000;
+	m_iPrimaryClip = m_iPrimaryClipMax = 20;
 
 	m_iWeaponSoundID = pGame->m_SoundManager.GetID(ASSET_TMP_SOUND);
 	m_iDryFireSoundID = pGame->m_SoundManager.GetID(ASSET_DRYFIRE);
 
 	m_bIsAutomatic = true;
 	m_bIsProjectileWeapon = true;
-	m_fFireDelay = 0.008f;
+	m_fFireDelay = 0.05f;
 	m_fNextAttackTime = 0.0f;
 	m_szName = "Dev TMP";
+
 
 	/* Initialise physics */
 	m_Physics.InitPhysics(pPhysics, pos.X, pos.Y, ASSET_AK47_COLLIDER, CEntityPhysics::CATEGORY_PLAYER_PICKUP,

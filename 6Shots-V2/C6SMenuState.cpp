@@ -54,61 +54,67 @@ void C6SMenuState::Init(CGame* pGame) {
 		
 		try {
 			tgui::Theme::Ptr theme = std::make_shared<tgui::Theme>("widgets/Black.txt");
+			tgui::Layout yOffset = 300;
 
 			// Play button
 			tgui::Button::Ptr btnPlay = theme->load("Button");
 			btnPlay->setSize(200, 30);
-			btnPlay->setPosition((float)pGame->m_WindowManager.GetScreenCentre().X - 100.0f, 300);
-			btnPlay->setText("Play");
+			btnPlay->setPosition((float)pGame->m_WindowManager.GetScreenCentre().X - 100.0f, yOffset);
+			btnPlay->setText("Singleplayer");
 			btnPlay->setTextSize(24);
 			btnPlay->connect("pressed", &PlayGame, pGame);
 			m_pGui->add(btnPlay);
+			yOffset += 40;
 
 			// Mutliplayer button
 			tgui::Button::Ptr btnMP = theme->load("Button");
 			btnMP->setSize(200, 30);
-			btnMP->setPosition((float)pGame->m_WindowManager.GetScreenCentre().X - 100.0f, 350);
+			btnMP->setPosition((float)pGame->m_WindowManager.GetScreenCentre().X - 100.0f, yOffset);
 			btnMP->setText("Multiplayer");
 			btnMP->setTextSize(24);
 			btnMP->connect("pressed", &MultiPlayer, pGame);
 			m_pGui->add(btnMP);
-
-			// Settings button
-			tgui::Button::Ptr btnSettings = theme->load("Button");
-			btnSettings->setSize(200, 30);
-			btnSettings->setPosition((float)pGame->m_WindowManager.GetScreenCentre().X - 100.0f, 400);
-			btnSettings->setText("Settings");
-			btnSettings->setTextSize(24);
-			btnSettings->connect("pressed", &Settings, pGame);
-			m_pGui->add(btnSettings);
-
-			// Quit button
-			tgui::Button::Ptr btnQuit = theme->load("Button");
-			btnQuit->setSize(200, 30);
-			btnQuit->setPosition((float)pGame->m_WindowManager.GetScreenCentre().X - 100.0f, 450);
-			btnQuit->setText("Quit");
-			btnQuit->setTextSize(24);
-			btnQuit->connect("pressed", &QuitGame, pGame);
-			m_pGui->add(btnQuit);
+			yOffset += 40;
 
 			// Map maker button
 			tgui::Button::Ptr btnMaker = theme->load("Button");
 			btnMaker->setSize(200, 30);
-			btnMaker->setPosition((float)pGame->m_WindowManager.GetScreenCentre().X - 100.0f, 500);
+			btnMaker->setPosition((float)pGame->m_WindowManager.GetScreenCentre().X - 100.0f, yOffset);
 			btnMaker->setText("Map Maker");
 			btnMaker->setTextSize(24);
 			btnMaker->connect("pressed", &LaunchMapMaker, pGame);
 			m_pGui->add(btnMaker);
+			yOffset += 40;
+
+			// Settings button
+			tgui::Button::Ptr btnSettings = theme->load("Button");
+			btnSettings->setSize(200, 30);
+			btnSettings->setPosition((float)pGame->m_WindowManager.GetScreenCentre().X - 100.0f, yOffset);
+			btnSettings->setText("Settings");
+			btnSettings->setTextSize(24);
+			btnSettings->connect("pressed", &Settings, pGame);
+			m_pGui->add(btnSettings);
+			yOffset += 40;
 
 			// Dev GM
-			tgui::Button::Ptr btnDevGM = theme->load("Button");
+			/*tgui::Button::Ptr btnDevGM = theme->load("Button");
 			btnDevGM->setSize(200, 30);
-			btnDevGM->setPosition((float)pGame->m_WindowManager.GetScreenCentre().X - 100.0f, 550);
+			btnDevGM->setPosition((float)pGame->m_WindowManager.GetScreenCentre().X - 100.0f, yOffset);
 			btnDevGM->setText("Dev GameMode");
 			btnDevGM->setTextSize(24);
 			btnDevGM->connect("pressed", &LaunchDevGM, pGame);
 			m_pGui->add(btnDevGM);
+			yOffset += 40;*/
 
+			// Quit button
+			tgui::Button::Ptr btnQuit = theme->load("Button");
+			btnQuit->setSize(200, 30);
+			btnQuit->setPosition((float)pGame->m_WindowManager.GetScreenCentre().X - 100.0f, yOffset);
+			btnQuit->setText("Quit");
+			btnQuit->setTextSize(24);
+			btnQuit->connect("pressed", &QuitGame, pGame);
+			m_pGui->add(btnQuit);
+			yOffset += 40;			
 		}
 		catch (...) {
 			pGame->ErrorQuit("Unable to create main menu");
@@ -123,17 +129,20 @@ void C6SMenuState::Init(CGame* pGame) {
 	pGame->m_WindowManager.SetGUIActive(true);
 }
 
-void C6SMenuState::Cleanup(CGame* pGame) {
-
-}
+void C6SMenuState::Cleanup(CGame* pGame) {}
  
 void C6SMenuState::Draw(CGame* pGame){
-	pGame->m_Drawing.DrawTextCentredX(pGame->GetWindowMgr(), "6S", pGame->m_WindowManager.GetScreenCentre().X, 100, 64, 255, 255, 255, 255);
-	pGame->m_Drawing.DrawTextCentredX(pGame->GetWindowMgr(), "Version 0.0", pGame->m_WindowManager.GetScreenCentre().X, 200, 24, 255, 255, 255, 255);
+	// Title
+	pGame->m_Drawing.DrawTextCentredX(pGame->GetWindowMgr(), "6Shots", pGame->m_WindowManager.GetScreenCentre().X, 32, 64, 255, 255, 255, 255);
+	pGame->m_Drawing.DrawTextCentredX(pGame->GetWindowMgr(), "Version 0.2", pGame->m_WindowManager.GetScreenCentre().X, 100, 24, 255, 255, 255, 255);
+
+	// Menu text
+	pGame->m_Drawing.DrawTextCentredX(pGame->GetWindowMgr(), "Main Menu", pGame->m_WindowManager.GetScreenCentre().X, 220, 32, 255, 255, 255, 255);
+
 	m_pGui->draw();
 }
 
-void C6SMenuState::Update(CGame* pGame){
+void C6SMenuState::Update(CGame* pGame) {
 
 }
 
