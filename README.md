@@ -1,7 +1,17 @@
 # 6Shots
-Multiplayer & singleplayer platformer twitch shooter.
+WIP Multiplayer & singleplayer platformer twitch shooter. There isn't much gameplay at the moment, but multiplayer 'quickdraw' gamemode is functional.
 
-Includes a map editor, inbuilt server hosting with a lobby,
+Includes a map editor, inbuilt server hosting with a lobby, simulated physics.
+
+# Controls
+- W to jump / move up ladders
+- A / D to move left and right
+- Move the mouse to aim and move your hand
+- Click when your hand is over a weapon to pick it up 
+- Click with a weapon in your hand to shooter
+- Right click to drop a weapon. You can throw it if you time it right!
+----
+- In singleplayer mode, press shift to test the gore effect
 
 ## Asset Sources:
 ### Images:
