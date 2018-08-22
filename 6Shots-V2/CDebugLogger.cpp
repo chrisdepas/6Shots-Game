@@ -1,8 +1,5 @@
 #include "stdafx.h"
 #include "CDebugLogger.h"
-#include <Windows.h>
-#include <fstream>
-#include <cstdarg>
 
 CDebugLogger::CDebugLogger() {
 	/* Default to fatal, error & warning */
@@ -27,46 +24,73 @@ CDebugLogger* CDebugLogger::LogLevel(ELoggingLevel level) {
 	return this;
 }
 
+void CDebugLogger::Log(const std::string& sOutput) {
+	if (!m_bLoggingEnabled)
+		return;
+	if (m_bFile) {
+		std::ofstream fstream(m_sLogFile, std::ios::binary);
+
+		if (!fstream.good()) {
+			m_bFile = false;
+			Log("DbgLog - Unable to write to file " + m_sLogFile);
+		} else {
+			fstream << sOutput;
+		}
+
+		fstream.close();
+	}
+	if (m_bStdout) {
+		fputs(sOutput.c_str(), stdout);
+	}
+}
 void CDebugLogger::Log(char* format, ...) {
 	if (!m_bLoggingEnabled)
 		return;
 
-	/* Init buffer as formatted string */
+	// Write formatted string
 	char logOutputBuf[512];	
 	va_list args;
 	va_start(args, format);
 	int result = vsprintf_s(logOutputBuf, 512, format, args);
 	va_end(args);
-
 	if (result <= 0) {
-		/* vsprintf error */
-		Log("[WARNING] Debug message skipped -> Exceeded 512 char limit\n");
+		LogWarning("Debug message skipped -> Exceeded 512 char limit\n");
 		return;
 	} 
 
 	/* Handle file logging */
 	if (m_bFile) {
-		std::ofstream fstream;
-		fstream.open(m_sLogFile);
+		std::ofstream fstream(m_sLogFile);
 
-		if (fstream.bad()) {
-			/* Disable file output */
+		if (!fstream.good()) {
 			m_bFile = false;
-			char errorBuf[256];
-
-			/* Show messagebox */
-			if (sprintf_s(errorBuf, 256, "Unable to write to file' %s'. file output has been disabled", m_sLogFile.c_str()) > 0) {
-				MessageBoxA(0, errorBuf, "LOGGER ERROR", 0);
-			}
+			Log("DbgLog - Unable to write to file " + m_sLogFile);
+		} else {
+			fstream.write(logOutputBuf, result);
 		}
 		
 		fstream.close();
 	}
 
-	/* Handle stdout logging */
 	if (m_bStdout) {
 		fputs(logOutputBuf, stdout);
-	}	
+	}
+}
+
+void CDebugLogger::Msg(const std::string& sOut, bool bAddNewline) {
+	Instance()->LogLevel(LOGLEVEL_DEBUG)->Log(sOut + (bAddNewline ? "\n" : ""));
+}
+void CDebugLogger::Info(const std::string& sOut, bool bAddNewline) {
+	Instance()->LogLevel(LOGLEVEL_DEBUG)->Log(sOut + (bAddNewline ? "\n" : ""));
+}
+void CDebugLogger::Warn(const std::string& sOut, bool bAddNewline) {
+	Instance()->LogLevel(LOGLEVEL_DEBUG)->Log(sOut + (bAddNewline ? "\n" : ""));
+}
+void CDebugLogger::Error(const std::string& sOut, bool bAddNewline) {
+	Instance()->LogLevel(LOGLEVEL_DEBUG)->Log(sOut + (bAddNewline ? "\n" : ""));
+}
+void CDebugLogger::Fatal(const std::string& sOut, bool bAddNewline) {
+	Instance()->LogLevel(LOGLEVEL_DEBUG)->Log(sOut + (bAddNewline ? "\n" : ""));
 }
 
 void CDebugLogger::LogDebug(char* format, ...) {

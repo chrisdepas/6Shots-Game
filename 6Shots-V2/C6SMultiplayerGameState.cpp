@@ -5,6 +5,7 @@
 #include "6SWeapons.h"
 #include "CBaseNPC.h"
 #include "C6SNetwork.h"
+#include "GUIFactory.h"
 
 
 void C6SMultiplayerGameState::Init(CGame* pGame) {
@@ -14,11 +15,16 @@ void C6SMultiplayerGameState::Init(CGame* pGame) {
 	/* Initialize physics engine */
 	m_Physics.InitPhysics(pGame, PHYSICS_GRAVITY, PHYSICS_DEBUG);
 
-	if (!IsAlreadyInitialised()) {
+	if (IsAlreadyInitialised()) {
+		// Set view to correct size and position
+		// Fixes case where screen has been resized after GUI is initialized
+		m_pGui->setView(pGame->m_WindowManager.GetGUIView());
+
+	} else {
 		/* Single-time initialisation */
 		
 		/* Load map */
-		m_Map.InitializeFromFile(pGame, ASSET_MAP_SPACEGRAVE);
+		m_Map.LoadFromFile(pGame, ASSET_MAP_SPACEGRAVE);
 
 		/* Init map collision spaces */
 		m_Physics.ParseWorldMap(&m_Map);
@@ -41,7 +47,7 @@ void C6SMultiplayerGameState::Init(CGame* pGame) {
 				/* Create new networked player */
 				C6SNetworkedPlayer* newPlayer = new C6SNetworkedPlayer;
 				newPlayer->Initialize(it->id, &m_Physics, ASSET_PLAYER_TEXTURE, ASSET_PLAYER_HAND, PLAYER_HANDSIZE, PLAYER_HEIGHT, 
-					PLAYER_WIDTH, Vector2i(100 + spawnOffset, m_Map.GetSize().Y));
+					PLAYER_WIDTH, sf::Vector2i(100 + spawnOffset, m_Map.GetSize().y));
 
 				spawnOffset += 100;
 				/* Add player*/
@@ -56,30 +62,28 @@ void C6SMultiplayerGameState::Init(CGame* pGame) {
 				/* Create new networked player */
 				C6SNetworkedPlayer* newPlayer = new C6SNetworkedPlayer;
 				newPlayer->Initialize(it->id, &m_Physics, ASSET_PLAYER_TEXTURE, ASSET_PLAYER_HAND, PLAYER_HANDSIZE, PLAYER_HEIGHT,
-					PLAYER_WIDTH, Vector2i(100 + spawnOffset, m_Map.GetSize().Y));
+					PLAYER_WIDTH, sf::Vector2i(100 + spawnOffset, m_Map.GetSize().y));
 
 				spawnOffset += 100;
 				/* Add player*/
 				m_vPlayers.push_back(newPlayer);
 			}
 		}
+		/* Init GUI */
+		m_pGui = new tgui::Gui(*pGame->m_WindowManager.GetWindow());
+		sf::Vector2f scrSize = pGame->m_WindowManager.GetScreenDimensions2f(); 
+
+		/* Chat Box */
+		tgui::EditBox::Ptr chatMsg = GUIFactory::EditboxMedium();
+		chatMsg->setSize((float)scrSize.x, 30.0f);
+		chatMsg->setPosition(0.0f, (float)scrSize.y - 30.0f); 
+		chatMsg->setText("");
+		chatMsg->setTextSize(24);
+		chatMsg->connect("ReturnKeyPressed", &C6SMultiplayerGameState::SendChatMessage, this, pGame);
+		chatMsg->setVisible(false);
+		chatMsg->setEnabled(false);
+		m_pGui->add(chatMsg, "ChatMsgBox");
 	}
-
-	/* Init GUI */
-	m_pGui = new tgui::Gui(*pGame->m_WindowManager.GetWindow());
-	Vector2i scrSize = pGame->m_WindowManager.GetScreenDimensions(); 
-	tgui::Theme::Ptr theme = std::make_shared<tgui::Theme>("widgets/Black.txt");
-
-	/* Chat Box */
-	tgui::EditBox::Ptr chatMsg = theme->load("EditBox");
-	chatMsg->setSize((float)scrSize.X, 30.0f);
-	chatMsg->setPosition(0.0f, (float)scrSize.Y - 30.0f); 
-	chatMsg->setText("");
-	chatMsg->setTextSize(24);
-	chatMsg->connect("ReturnKeyPressed", &C6SMultiplayerGameState::SendChatMessage, this, pGame);
-	chatMsg->hide();
-	chatMsg->disable();
-	m_pGui->add(chatMsg, "ChatMsgBox");
 
 	/* Show GUI */
 	pGame->m_WindowManager.SetGUI(m_pGui);
@@ -106,7 +110,7 @@ void C6SMultiplayerGameState::Init(CGame* pGame) {
 	pGame->m_Time.ResetFrameTime();
 	  
 	/* Reset map data */
-	m_Map.Reset();	
+	m_Map.ResetState();	
 	m_Map.ResetSpawns(); 
 
 	/* Set player pos */
@@ -178,13 +182,13 @@ void C6SMultiplayerGameState::SendChatMessage(CGame* pGame) {
 	editChat->setText("");
 
 	/* Hide message box */
-	editChat->hide();
-	editChat->disable();
+	editChat->setVisible(false);
+	editChat->setEnabled(false);
 
 	/* Disable GUI input handling */
 	pGame->m_WindowManager.SetGUIActive(false);
 }
-void C6SMultiplayerGameState::OnTick(CGame* pGame, int iClientID, Vector2f vPosition, Vector2f vHandPosition, float fHandRotation, bool bLeftFacing, bool bWalking) {
+void C6SMultiplayerGameState::OnTick(CGame* pGame, int iClientID, sf::Vector2f vPosition, sf::Vector2f vHandPosition, float fHandRotation, bool bLeftFacing, bool bWalking) {
 	if (m_eCurState != MULTIGAMESTATE_ROUND && m_eCurState != MULTIGAMESTATE_ROUNDWIN) {
 		/* Ignore ticks unless we are during a round / end of round win */
 		return;
@@ -197,7 +201,7 @@ void C6SMultiplayerGameState::OnTick(CGame* pGame, int iClientID, Vector2f vPosi
 		} 
 	}
 }
-void C6SMultiplayerGameState::OnRemoteEntityCreate(CGame* pGame, int iEntityID, int iType, Vector2f vCreatePos, float fCreateAngle, int iInstanceID, int iClientGiveID) {
+void C6SMultiplayerGameState::OnRemoteEntityCreate(CGame* pGame, int iEntityID, int iType, sf::Vector2f vCreatePos, float fCreateAngle, int iInstanceID, int iClientGiveID) {
 
 	if (pGame->m_Client.IsConnected()) {
 		// Ensure ID isn't taken
@@ -222,7 +226,7 @@ void C6SMultiplayerGameState::OnRemoteEntityCreate(CGame* pGame, int iEntityID, 
 			case C6SWEAPONID_REVOLVER:
 				{
 				C6SRevolver* newWepRevolver = new C6SRevolver();
-				newWepRevolver->Init(&m_Physics, Vector2i(vCreatePos.X, vCreatePos.Y), pGame);
+				newWepRevolver->Init(&m_Physics, sf::Vector2i(vCreatePos), pGame);
 				newWep = newWepRevolver;
 				break;
 				}
@@ -270,7 +274,7 @@ void C6SMultiplayerGameState::OnRoundStart(CGame* pGame) {
 	}
 }
 
-void C6SMultiplayerGameState::OnPlayerRightMousePress(CGame* pGame, int iClientID, Vector2f vThrowVelocity, float fThrowRotation) {
+void C6SMultiplayerGameState::OnPlayerRightMousePress(CGame* pGame, int iClientID, sf::Vector2f vThrowVelocity, float fThrowRotation) {
 	if (m_eCurState != MULTIGAMESTATE_ROUND && m_eCurState != MULTIGAMESTATE_ROUNDWIN) {
 		/* Ignore input unless we are during a round / end of round win */
 		return;
@@ -289,7 +293,7 @@ void C6SMultiplayerGameState::OnPlayerRightMousePress(CGame* pGame, int iClientI
 					return;
 
 				/* Attempt server weapon drop */
-				Vector2f vThrowPosition = m_vPlayers[i]->GetHandPosition();
+				sf::Vector2f vThrowPosition = m_vPlayers[i]->GetHandPosition();
 				if (!m_vPlayers[i]->NetworkedDropWeapon(&m_EntMgr, vThrowVelocity, vThrowPosition)) {
 					CDebugLogger::LogError("[SERVER] Client with ID %i failed to drop weapon during OnPlayerRightMousePress\n", iClientID);
 					return;
@@ -322,8 +326,8 @@ void C6SMultiplayerGameState::OnPlayerMousePress(CGame* pGame, int iClientID) {
 
 					if (m_vPlayers[i]->CanShootWeapon()) {
 						/* Attempt to shoot weapon for client */
-						Vector2f vShootPosition = m_vPlayers[i]->GetShootPosition();
-						Vector2f vShootVelocity = m_vPlayers[i]->GetShootVelocity();
+						sf::Vector2f vShootPosition = m_vPlayers[i]->GetShootPosition();
+						sf::Vector2f vShootVelocity = m_vPlayers[i]->GetShootVelocity();
 						/* Create bullet projectile */
 						int newProjectileID = m_Projectiles.AddProjectile(&m_Physics, false, m_vPlayers[i]->GetWeaponDamage(), 100, 0, vShootPosition, vShootVelocity);
 						m_vPlayers[i]->ShootWeapon(pGame, &m_EntMgr, &m_Physics);
@@ -394,7 +398,7 @@ void C6SMultiplayerGameState::OnPlayerPickupWeapon(CGame* pGame, int clientID, i
 	}
 }
 
-void C6SMultiplayerGameState::OnPlayerThrowWeapon(CGame* pGame, int clientID, Vector2f vPosition, Vector2f vVelocity, float fThrowRotation) {
+void C6SMultiplayerGameState::OnPlayerThrowWeapon(CGame* pGame, int clientID, sf::Vector2f vPosition, sf::Vector2f vVelocity, float fThrowRotation) {
 	if (pGame->m_Client.IsActive()) {
 		/* Handle player weapon drops */
 		for (unsigned int i = 0; i < m_vPlayers.size(); i++) {
@@ -422,7 +426,7 @@ void C6SMultiplayerGameState::OnPlayerThrowWeapon(CGame* pGame, int clientID, Ve
 	}
 }
 
-void C6SMultiplayerGameState::OnPlayerShootWeapon(CGame* pGame, int clientID, Vector2f vPosition, Vector2f vVelocity, int projectileID) {
+void C6SMultiplayerGameState::OnPlayerShootWeapon(CGame* pGame, int clientID, sf::Vector2f vPosition, sf::Vector2f vVelocity, int projectileID) {
 	if (pGame->m_Client.IsActive()) {
 		/* Handle player weapon shooting */
 		for (unsigned int i = 0; i < m_vPlayers.size(); i++) {
@@ -468,7 +472,7 @@ void C6SMultiplayerGameState::OnPlayerDryFire(CGame* pGame, int clientID) {
 }
 
 /* Applies damage to player and calls HandlePlayerDamage */
-void C6SMultiplayerGameState::OnPlayerDamage(CGame* pGame, int iClientID, Vector2f vDamagePosition, Vector2f vDamageVelocity, int iDamageAmount) {
+void C6SMultiplayerGameState::OnPlayerDamage(CGame* pGame, int iClientID, sf::Vector2f vDamagePosition, sf::Vector2f vDamageVelocity, int iDamageAmount) {
 	if (pGame->m_Client.IsActive()) {
 		if (iClientID == m_iLocalPlayerID) {
 			/* Apply damage to local player */ 
@@ -494,7 +498,7 @@ void C6SMultiplayerGameState::OnPlayerDamage(CGame* pGame, int iClientID, Vector
 }
 
 /* Applies death to player and calls HandlePlayerDeath */
-void C6SMultiplayerGameState::OnPlayerDeath(CGame* pGame, int iClientID, Vector2f vDamagePosition, Vector2f vDamageVelocity) {
+void C6SMultiplayerGameState::OnPlayerDeath(CGame* pGame, int iClientID, sf::Vector2f vDamagePosition, sf::Vector2f vDamageVelocity) {
 	if (pGame->m_Client.IsActive()) {
 		if (iClientID == m_iLocalPlayerID) {
 			/* Kill local player */
@@ -540,7 +544,7 @@ void C6SMultiplayerGameState::OnRoundReset(CGame* pGame) {
 		for (unsigned int i = 0; i < m_vPlayers.size(); i++) {
 			if (m_vPlayers[i]->HasWeapon())
 				/* CNetworkedPlayer DropWeapon doesn't send packets */
-				m_vPlayers[i]->NetworkedDropWeapon(&m_EntMgr, Vector2f::Null(), Vector2f::Null());
+				m_vPlayers[i]->NetworkedDropWeapon(&m_EntMgr, sf::Vector2f(0.0f, 0.0f), sf::Vector2f(0.0f, 0.0f));
 		}
 
 		/* Despawn all entities */
@@ -572,19 +576,19 @@ void C6SMultiplayerGameState::OnRoundReset(CGame* pGame) {
 	}
 }
 
-void C6SMultiplayerGameState::HandlePlayerDamage(CGame* pGame, int playerID, Vector2f& vPosition, Vector2f& vVelocity, int iDamageAmount) {
+void C6SMultiplayerGameState::HandlePlayerDamage(CGame* pGame, int playerID, sf::Vector2f& vPosition, sf::Vector2f& vVelocity, int iDamageAmount) {
 	if (playerID == m_iLocalPlayerID) {
 		m_Gore.ApplyDamageEffect(pGame);
 	}
 	else { 
 		 
 	}
-
-	m_Gore.CreateBloodSplatter(&m_Physics, Vector2i(vPosition.X, vPosition.Y), 0.2f, 4, Vector2f(pGame->m_Random.RandomFloat(-500.0f, 500.0f), pGame->m_Random.RandomFloat(-500.0f, 500.0f)));
-	m_Gore.CreateBloodSplatter(&m_Physics, Vector2i(vPosition.X, vPosition.Y), 0.2f, 4, Vector2f(pGame->m_Random.RandomFloat(-500.0f, 500.0f), pGame->m_Random.RandomFloat(-500.0f, 500.0f)));
-	m_Gore.CreateBloodSplatter(&m_Physics, Vector2i(vPosition.X, vPosition.Y), 0.2f, 4, Vector2f(pGame->m_Random.RandomFloat(-500.0f, 500.0f), pGame->m_Random.RandomFloat(-500.0f, 500.0f)));
+	// HACK - TODO -> This should be done by m_gore
+	m_Gore.CreateBloodSplatter(&m_Physics, sf::Vector2i(vPosition), 0.2f, 4, sf::Vector2f(pGame->m_Random.RandomFloat(-500.0f, 500.0f), pGame->m_Random.RandomFloat(-500.0f, 500.0f)));
+	m_Gore.CreateBloodSplatter(&m_Physics, sf::Vector2i(vPosition), 0.2f, 4, sf::Vector2f(pGame->m_Random.RandomFloat(-500.0f, 500.0f), pGame->m_Random.RandomFloat(-500.0f, 500.0f)));
+	m_Gore.CreateBloodSplatter(&m_Physics, sf::Vector2i(vPosition), 0.2f, 4, sf::Vector2f(pGame->m_Random.RandomFloat(-500.0f, 500.0f), pGame->m_Random.RandomFloat(-500.0f, 500.0f)));
 }
-void C6SMultiplayerGameState::HandlePlayerDeath(CGame* pGame, int playerID, Vector2f& vPosition, Vector2f& vVelocity) {
+void C6SMultiplayerGameState::HandlePlayerDeath(CGame* pGame, int playerID, sf::Vector2f& vPosition, sf::Vector2f& vVelocity) {
 	if (playerID == m_iLocalPlayerID) {
 		m_Player.NetworkedOnDeath(pGame, &m_EntMgr);
 	}
@@ -598,19 +602,19 @@ void C6SMultiplayerGameState::HandlePlayerDeath(CGame* pGame, int playerID, Vect
 		}
 	}
 
-
-	m_Gore.CreateBloodSplatter(&m_Physics, Vector2i(vPosition.X, vPosition.Y), 0.2f, 4, Vector2f(pGame->m_Random.RandomFloat(-500.0f, 500.0f), pGame->m_Random.RandomFloat(-500.0f, 500.0f)));
-	m_Gore.CreateBloodSplatter(&m_Physics, Vector2i(vPosition.X, vPosition.Y), 0.2f, 4, Vector2f(pGame->m_Random.RandomFloat(-500.0f, 500.0f), pGame->m_Random.RandomFloat(-500.0f, 500.0f)));
-	m_Gore.CreateBloodSplatter(&m_Physics, Vector2i(vPosition.X, vPosition.Y), 0.2f, 4, Vector2f(pGame->m_Random.RandomFloat(-500.0f, 500.0f), pGame->m_Random.RandomFloat(-500.0f, 500.0f)));
-	m_Gore.CreateBloodSplatter(&m_Physics, Vector2i(vPosition.X, vPosition.Y), 0.2f, 4, Vector2f(pGame->m_Random.RandomFloat(-500.0f, 500.0f), pGame->m_Random.RandomFloat(-500.0f, 500.0f)));
-	m_Gore.CreateBloodSplatter(&m_Physics, Vector2i(vPosition.X, vPosition.Y), 0.2f, 4, Vector2f(pGame->m_Random.RandomFloat(-500.0f, 500.0f), pGame->m_Random.RandomFloat(-500.0f, 500.0f)));
-	m_Gore.CreateBloodSplatter(&m_Physics, Vector2i(vPosition.X, vPosition.Y), 0.2f, 4, Vector2f(pGame->m_Random.RandomFloat(-500.0f, 500.0f), pGame->m_Random.RandomFloat(-500.0f, 500.0f)));
-	m_Gore.CreateBloodSplatter(&m_Physics, Vector2i(vPosition.X, vPosition.Y), 0.2f, 4, Vector2f(pGame->m_Random.RandomFloat(-500.0f, 500.0f), pGame->m_Random.RandomFloat(-500.0f, 500.0f)));
-	m_Gore.CreateBloodSplatter(&m_Physics, Vector2i(vPosition.X, vPosition.Y), 0.2f, 4, Vector2f(pGame->m_Random.RandomFloat(-500.0f, 500.0f), pGame->m_Random.RandomFloat(-500.0f, 500.0f)));
-	m_Gore.CreateBloodSplatter(&m_Physics, Vector2i(vPosition.X, vPosition.Y), 0.2f, 4, Vector2f(pGame->m_Random.RandomFloat(-500.0f, 500.0f), pGame->m_Random.RandomFloat(-500.0f, 500.0f)));
-	m_Gore.CreateBloodSplatter(&m_Physics, Vector2i(vPosition.X, vPosition.Y), 0.2f, 4, Vector2f(pGame->m_Random.RandomFloat(-500.0f, 500.0f), pGame->m_Random.RandomFloat(-500.0f, 500.0f)));
-	m_Gore.CreateBloodSplatter(&m_Physics, Vector2i(vPosition.X, vPosition.Y), 0.2f, 4, Vector2f(pGame->m_Random.RandomFloat(-500.0f, 500.0f), pGame->m_Random.RandomFloat(-500.0f, 500.0f)));
-	m_Gore.CreateBloodSplatter(&m_Physics, Vector2i(vPosition.X, vPosition.Y), 0.2f, 4, Vector2f(pGame->m_Random.RandomFloat(-500.0f, 500.0f), pGame->m_Random.RandomFloat(-500.0f, 500.0f)));
+	// HACK - TODO -> This should be done by m_gore
+	m_Gore.CreateBloodSplatter(&m_Physics, sf::Vector2i(vPosition), 0.2f, 4, sf::Vector2f(pGame->m_Random.RandomFloat(-500.0f, 500.0f), pGame->m_Random.RandomFloat(-500.0f, 500.0f)));
+	m_Gore.CreateBloodSplatter(&m_Physics, sf::Vector2i(vPosition), 0.2f, 4, sf::Vector2f(pGame->m_Random.RandomFloat(-500.0f, 500.0f), pGame->m_Random.RandomFloat(-500.0f, 500.0f)));
+	m_Gore.CreateBloodSplatter(&m_Physics, sf::Vector2i(vPosition), 0.2f, 4, sf::Vector2f(pGame->m_Random.RandomFloat(-500.0f, 500.0f), pGame->m_Random.RandomFloat(-500.0f, 500.0f)));
+	m_Gore.CreateBloodSplatter(&m_Physics, sf::Vector2i(vPosition), 0.2f, 4, sf::Vector2f(pGame->m_Random.RandomFloat(-500.0f, 500.0f), pGame->m_Random.RandomFloat(-500.0f, 500.0f)));
+	m_Gore.CreateBloodSplatter(&m_Physics, sf::Vector2i(vPosition), 0.2f, 4, sf::Vector2f(pGame->m_Random.RandomFloat(-500.0f, 500.0f), pGame->m_Random.RandomFloat(-500.0f, 500.0f)));
+	m_Gore.CreateBloodSplatter(&m_Physics, sf::Vector2i(vPosition), 0.2f, 4, sf::Vector2f(pGame->m_Random.RandomFloat(-500.0f, 500.0f), pGame->m_Random.RandomFloat(-500.0f, 500.0f)));
+	m_Gore.CreateBloodSplatter(&m_Physics, sf::Vector2i(vPosition), 0.2f, 4, sf::Vector2f(pGame->m_Random.RandomFloat(-500.0f, 500.0f), pGame->m_Random.RandomFloat(-500.0f, 500.0f)));
+	m_Gore.CreateBloodSplatter(&m_Physics, sf::Vector2i(vPosition), 0.2f, 4, sf::Vector2f(pGame->m_Random.RandomFloat(-500.0f, 500.0f), pGame->m_Random.RandomFloat(-500.0f, 500.0f)));
+	m_Gore.CreateBloodSplatter(&m_Physics, sf::Vector2i(vPosition), 0.2f, 4, sf::Vector2f(pGame->m_Random.RandomFloat(-500.0f, 500.0f), pGame->m_Random.RandomFloat(-500.0f, 500.0f)));
+	m_Gore.CreateBloodSplatter(&m_Physics, sf::Vector2i(vPosition), 0.2f, 4, sf::Vector2f(pGame->m_Random.RandomFloat(-500.0f, 500.0f), pGame->m_Random.RandomFloat(-500.0f, 500.0f)));
+	m_Gore.CreateBloodSplatter(&m_Physics, sf::Vector2i(vPosition), 0.2f, 4, sf::Vector2f(pGame->m_Random.RandomFloat(-500.0f, 500.0f), pGame->m_Random.RandomFloat(-500.0f, 500.0f)));
+	m_Gore.CreateBloodSplatter(&m_Physics, sf::Vector2i(vPosition), 0.2f, 4, sf::Vector2f(pGame->m_Random.RandomFloat(-500.0f, 500.0f), pGame->m_Random.RandomFloat(-500.0f, 500.0f)));
 }
 
 void C6SMultiplayerGameState::HandleConsoleCommand(CGame* pGame, int playerID, int eCmd) {
@@ -622,9 +626,9 @@ void C6SMultiplayerGameState::HandleConsoleCommand(CGame* pGame, int playerID, i
 				/* Neck */
 				m_Player.Kill();
 				/* Network death to clients */
-				pGame->m_Server.SendClientDeath(pGame, m_iLocalPlayerID, m_Player.GetHandPosition(), Vector2f::Null());
+				pGame->m_Server.SendClientDeath(pGame, m_iLocalPlayerID, m_Player.GetHandPosition(), sf::Vector2f(0.0f, 0.0f));
 				/* Handle death */
-				HandlePlayerDeath(pGame, m_iLocalPlayerID, m_Player.GetHandPosition(), Vector2f::Null());
+				HandlePlayerDeath(pGame, m_iLocalPlayerID, m_Player.GetHandPosition(), sf::Vector2f(0.0f, 0.0f));
 			}
 			else {
 				for (unsigned int i = 0; i < m_vPlayers.size(); i++) {
@@ -632,9 +636,9 @@ void C6SMultiplayerGameState::HandleConsoleCommand(CGame* pGame, int playerID, i
 						/* Kill */
 						m_vPlayers[i]->Kill();
 						/* Network death to clients */
-						pGame->m_Server.SendClientDeath(pGame, playerID, m_Player.GetHandPosition(), Vector2f::Null());
+						pGame->m_Server.SendClientDeath(pGame, playerID, m_Player.GetHandPosition(), sf::Vector2f(0.0f, 0.0f));
 						/* Handle death */
-						HandlePlayerDeath(pGame, playerID, m_Player.GetHandPosition(), Vector2f::Null());
+						HandlePlayerDeath(pGame, playerID, m_Player.GetHandPosition(), sf::Vector2f(0.0f, 0.0f));
 						break;
 					}
 				}
@@ -654,8 +658,8 @@ void C6SMultiplayerGameState::SpawnPlayerRevolvers(CGame* pGame) {
 	for (unsigned int i = 0; i < m_vPlayers.size(); i++) {
 		/* Create weapon */
 		C6SRevolver* newRevolver = new C6SRevolver();
-		Vector2f playerPos = m_vPlayers[i]->GetHandPosition();
-		newRevolver->Init(&m_Physics, Vector2i(playerPos.X, playerPos.Y), pGame);
+		sf::Vector2f playerPos = m_vPlayers[i]->GetHandPosition();
+		newRevolver->Init(&m_Physics, sf::Vector2i(playerPos), pGame);
 		newRevolver->SetEntityID(m_EntMgr.GetNextEntityID());
 		newRevolver->SetTrueRotation(0.0f);
 
@@ -666,8 +670,8 @@ void C6SMultiplayerGameState::SpawnPlayerRevolvers(CGame* pGame) {
 
 	/* Create weapon */
 	C6SRevolver* newRevolver = new C6SRevolver();
-	Vector2f playerPos = m_Player.GetHandPosition();  
-	newRevolver->Init(&m_Physics, Vector2i(playerPos.X, playerPos.Y), pGame);
+	sf::Vector2f playerPos = m_Player.GetHandPosition();  
+	newRevolver->Init(&m_Physics, sf::Vector2i(playerPos), pGame);
 	newRevolver->SetEntityID(m_EntMgr.GetNextEntityID());
 	newRevolver->SetTrueRotation(0.0f);
 
@@ -700,7 +704,7 @@ void C6SMultiplayerGameState::ServerResetGamemode(CGame* pGame) {
 		for (unsigned int i = 0; i < m_vPlayers.size(); i++) {
 			if (m_vPlayers[i]->HasWeapon())
 				/* CNetworkedPlayer DropWeapon doesn't send packets */
-				m_vPlayers[i]->NetworkedDropWeapon(&m_EntMgr, Vector2f::Null(), Vector2f::Null());
+				m_vPlayers[i]->NetworkedDropWeapon(&m_EntMgr, sf::Vector2f(0.0f, 0.0f), sf::Vector2f(0.0f, 0.0f));
 		}
 
 		/* Despawn all entities */
@@ -798,14 +802,11 @@ void C6SMultiplayerGameState::Draw(CGame* pGame){
 	/* HP Indicator */
 	char szHealthBuf[32]; 
 	sprintf_s(szHealthBuf, 32, "HP: %i\n", m_Player.GetHP());
-	pGame->m_Drawing.DrawText(pGame->GetWindowMgr(), szHealthBuf, pGame->m_WindowManager.GetScreenDimensions().X - 120, 
-		pGame->m_WindowManager.GetScreenDimensions().Y - 30, 24, 255, 255, 255, 255);
+	pGame->m_Drawing.DrawText(pGame->GetWindowMgr(), szHealthBuf, pGame->m_WindowManager.GetScreenDimensions().x - 120, 
+		pGame->m_WindowManager.GetScreenDimensions().y - 30, 24, 255, 255, 255, 255);
 }
 
-void C6SMultiplayerGameState::Update(CGame* pGame){
-	/* Elapsed frame time */
-	float fLastFrameTime = pGame->m_Time.LastFrameTime();
-
+void C6SMultiplayerGameState::Update(CGame* pGame, float fFrameTime) {
 	/* Server networking */
 	if (pGame->m_Server.IsListening()) {
 		/* Update networking */
@@ -993,28 +994,28 @@ void C6SMultiplayerGameState::Update(CGame* pGame){
 	}
 
 	/* Update scheduler */
-	m_Scheduler.Update(fLastFrameTime);
+	m_Scheduler.Update(fFrameTime);
 	 
 	/* Update networked players */
 	for (unsigned int i = 0; i < m_vPlayers.size(); i++) {
-		m_vPlayers[i]->Update(fLastFrameTime, pGame, &m_Map, &m_Projectiles, &m_Physics);
+		m_vPlayers[i]->Update(fFrameTime, pGame, &m_Projectiles, &m_Physics);
 	}
 
 	/* Update weapons */
-	m_EntMgr.Update(fLastFrameTime, pGame, &m_Physics);
+	m_EntMgr.Update(fFrameTime, pGame, &m_Physics);
 
 	/* Update weapon projectiles */
-	m_Projectiles.UpdateProjectiles(fLastFrameTime);
+	m_Projectiles.UpdateProjectiles(fFrameTime);
 
 	/* Update physics/localplayer */
-	m_Player.UpdateNetworked(fLastFrameTime, pGame, &m_Map, &m_Projectiles, &m_Physics, &m_EntMgr);
-	m_Physics.Step(fLastFrameTime);
+	m_Player.UpdateNetworked(fFrameTime, pGame, &m_Projectiles, &m_Physics, &m_EntMgr);
+	m_Physics.Step(fFrameTime);
 
 	/* Update gore */
-	m_Gore.Update(pGame, &m_Physics, fLastFrameTime);
+	m_Gore.Update(pGame, &m_Physics, fFrameTime);
 
 	/* Update chat */
-	m_ChatDisplay.Update(fLastFrameTime);
+	m_ChatDisplay.Update(fFrameTime);
 }
  
 void C6SMultiplayerGameState::HandleInput(CGame* pGame) {
@@ -1024,18 +1025,18 @@ void C6SMultiplayerGameState::HandleInput(CGame* pGame) {
 	pWnd->MoveCamera(m_Player.GetPosition2f());
 
 	if (pGame->m_Input.ActionKeyPressed(EAction::Action_Show_Chat)) {
-		tgui::EditBox::Ptr chatBox = (tgui::EditBox::Ptr)m_pGui->get<tgui::EditBox>("ChatMsgBox", false);
+		auto chatBox = m_pGui->get<tgui::EditBox>("ChatMsgBox");
 		if (chatBox && !chatBox->isEnabled()) {
 			/* Clear input of show chat key */
 			pGame->m_Input.FlushInput(pGame->GetWindowMgr());
 
 			/* Show & enable */
-			chatBox->enable(); 
-			chatBox->show(); 
+			chatBox->setVisible(true); 
+			chatBox->setEnabled(true); 
 
 			/* Enable GUI */
 			pGame->m_WindowManager.SetGUIActive(true);
-			chatBox->focus();
+			chatBox->setFocused(true);
 
 			/* Show chat window */ 
 			m_ChatDisplay.Show();

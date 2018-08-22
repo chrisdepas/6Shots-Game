@@ -6,6 +6,7 @@
 */
 #include "CBaseCombatEntity.h"
 #include "CEntityPhysics.h"
+
 class CBaseProp : public CBaseCombatEntity {
 	CEntityPhysics m_Physics; 
 

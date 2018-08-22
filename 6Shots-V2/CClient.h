@@ -10,9 +10,8 @@
 
 #define DEFAULT_SERVER_PORT 55021
 #define VERSION 1
-#include <SFML\Network.hpp>
 #include "CRandom.h"
-#include "Vector.h"
+
 #include "INetworkListener.h"
 class C6SPacket;
 class CGame;
@@ -89,13 +88,13 @@ public:
 	void RemoveNetworkListener(INetworkListener* pListener);
 
 	/* Send client tick to server */
-	void SendTick(Vector2f vPlayerPos, Vector2f vHandPos, float fHandRotation, bool bFacingLeft, bool bWalking);
+	void SendTick(sf::Vector2f vPlayerPos, sf::Vector2f vHandPos, float fHandRotation, bool bFacingLeft, bool bWalking);
 
 	/* Send client input event to server */
 	void SendMousepressEvent();
 
 	/*  */
-	void SendRightMousepressEvent(Vector2f vThrowVelocity);
+	void SendRightMousepressEvent(sf::Vector2f vThrowVelocity);
 
 	/* Send ready packet to server */
 	void SendReady();

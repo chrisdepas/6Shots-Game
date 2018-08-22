@@ -7,25 +7,54 @@
 
 #include "targetver.h"
 
-#include <stdio.h>
-#include <tchar.h>
+// SFML 
+#include <SFML/Audio.hpp>
+#include <SFML/Graphics/Shader.hpp>
+#include <SFML/Graphics.hpp>
+#include <SFML/Network.hpp>
+#include <SFML/System/Clock.hpp>
+#include <SFML/Window.hpp>
 
-// Infrequently changed headers
-/*#include "Actions.h"
-#include "ASSETS.h"
-#include "C6SDevState.h"
-#include "C6SMap.h"
-#include "C6SMultiplayerState.h"
-#include "C6SPlayer.h"
-#include "CAnimatedSprite.h"
-#include "CBaseCombatEntity.h"
-#include "CBaseEntity.h"
-#include "CBaseMeleeWeapon.h"
-#include "CBaseProjectileWeapon.h"
-#include "CBaseWeapon.h"
-#include "CDrawingManager.h"
-#include "CEncryption.h"
-#include "CEntityManager.h" 
-#include "CEventManager.h"
-#include "CGame.h"
-#include "CGameState.h"*/
+// SFML GUI
+#include <TGUI/TGUI.hpp>
+
+// Physics
+#include <Box2D\Box2D.h>
+
+// RapidXML - Disable warnings
+#pragma warning(push, 0)  
+	#include <rapidxml.hpp>
+	#include <rapidxml_utils.hpp>
+#pragma warning(pop)
+
+// LUA scripting language
+// Need to get lua for msvc14
+//#include <lua.hpp>
+
+// Boost
+#include <boost\filesystem.hpp>
+
+// stdlib
+#include <algorithm>
+#include <assert.h>
+#include <chrono>
+#include <cstdarg>
+#include <cstring>
+#include <errno.h>
+#include <iostream>
+#include <math.h>
+#include <map>
+#include <fstream>
+#include <functional>
+#include <queue>
+#include <random>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string>
+#include <tchar.h>
+#include <time.h>
+#include <vector>
+
+// Bring string scope
+using std::string;
+using std::to_string;

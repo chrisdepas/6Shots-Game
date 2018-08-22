@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "CEntityPhysics.h"
 #include "CWorldPhysics.h"
-#include <fstream>
+#include "DebugUtil.h"
 
 /*
 	Christopher De Pasquale
@@ -16,14 +16,19 @@
 CEntityPhysics::CEntityPhysics() {
 	m_pBody = 0;
 }
-Vector2f CEntityPhysics::GetPosition() {
+sf::Vector2f CEntityPhysics::GetPosition() {
 	b2Vec2 p = m_pBody->GetPosition();
 
 	// Scale up from metres to pixels
-	return Vector2f(p.x * METER_TO_PIXEL,
-		p.y * METER_TO_PIXEL);
+	return sf::Vector2f(p.x * METER_TO_PIXEL, p.y * METER_TO_PIXEL);
 }
-float CEntityPhysics::GetRotation() {
+
+float CEntityPhysics::GetRotationDegree() {
+	b2Transform t = m_pBody->GetTransform();
+	return t.q.GetAngle();
+}
+
+float CEntityPhysics::GetRotationRadian() {
 	b2Transform t = m_pBody->GetTransform();
 
 	return t.q.GetAngle();
@@ -40,17 +45,15 @@ bool CEntityPhysics::IsCategory(EEntityCategory category) {
 	return true;
 }
 
-void CEntityPhysics::SetPosition(Vector2i position) {
+void CEntityPhysics::SetPosition(sf::Vector2i position) {
 	// Scale from pixels to meters
-	position *= PIXEL_TO_METER;
-
-	m_pBody->SetTransform(b2Vec2((float32)position.X, (float32)position.Y), 0.0f);
+	m_pBody->SetTransform(b2Vec2(position.x * PIXEL_TO_METER, 
+		position.y * PIXEL_TO_METER), 0.0f);
 }
-void CEntityPhysics::SetPosition(Vector2f position) {
+void CEntityPhysics::SetPosition(sf::Vector2f position) {
 	// Scale from pixels to meters
-	position *= PIXEL_TO_METER;
-
-	m_pBody->SetTransform(b2Vec2(position.X, position.Y), 0.0f);
+	m_pBody->SetTransform(b2Vec2(position.x * PIXEL_TO_METER, 
+		position.y * PIXEL_TO_METER), 0.0f);
 }
 
 void CEntityPhysics::SetRotation(float rotationRadian) {
@@ -65,11 +68,11 @@ void CEntityPhysics::SetRotationalVelocity(float rotationVel) {
 	m_pBody->SetAngularVelocity(rotationVel);
 }
 
-void CEntityPhysics::SetVelocity(Vector2f vel) {
+void CEntityPhysics::SetVelocity(sf::Vector2f vel) {
 	if (m_pBody) {
 		// Scale from pixels/second to meters/second
 		vel *= PIXEL_TO_METER;
-		m_pBody->SetLinearVelocity(b2Vec2(vel.X, vel.Y));
+		m_pBody->SetLinearVelocity(b2Vec2(vel.x, vel.y));
 	}
 }
 
@@ -83,13 +86,12 @@ void CEntityPhysics::SetHorizontalVelocity(float vel) {
 	}
 }
 void CEntityPhysics::SetVerticalVelocity(float vel) {
-	if (m_pBody) {
+	DbgAssert(m_pBody);
 		b2Vec2 velocity = m_pBody->GetLinearVelocity();
-		// Scale from pixels/second to meters/second
-		velocity.y = vel * PIXEL_TO_METER;
 
+		// Scale from pixels/second to box2d meters/second
+		velocity.y = vel * PIXEL_TO_METER;
 		m_pBody->SetLinearVelocity(velocity);
-	}
 }
 
 void CEntityPhysics::InitPhysics(CWorldPhysics* pWorldPhysics, int initPosX, int initPosY, int width, int height, 

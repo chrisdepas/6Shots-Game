@@ -5,19 +5,28 @@
 #include "ASSETS.h"
 #include "6SWeapons.h"
 #include "CBaseNPC.h"
-#include <iostream>
-#include <fstream>
+#include "GUIFactory.h"
+
 #define FONT_SIZE 24
 #define LOOK_SPEED 300.0f
 
 #define TILESET_LINEBUFFER_SIZE 1024
 
-const char* C6SMap::szMapTypeStrings[C6SMap::EMapType::TYPE_COUNT] = {
-	"unknown",
-	"develop",
-	"default"
-};
 
+void C6SMapMakerState::PublishMap(CGame* pGame) {
+	tgui::Panel::Ptr panelSettings = (tgui::Panel::Ptr)m_pGUI->get<tgui::Panel>("SettingsPanel");
+	if (panelSettings == NULL)
+		return;
+	tgui::EditBox::Ptr editMapPath = (tgui::EditBox::Ptr)panelSettings->get<tgui::EditBox>(sf::String("EditMapPath"));
+	if (editMapPath == NULL)
+		return;
+
+	sf::String sfText = editMapPath->getText().toAnsiString();
+	if (!sfText.isEmpty()) {
+		C6SDevMapPublish* pMap = (C6SDevMapPublish*)&m_Map;
+		pMap->Publish(sfText);
+	}
+}
 void C6SMapMakerState::ExportMap(CGame* pGame) {
 	tgui::Panel::Ptr panelSettings = (tgui::Panel::Ptr)m_pGUI->get<tgui::Panel>("SettingsPanel");
 	if (panelSettings == NULL)
@@ -26,11 +35,8 @@ void C6SMapMakerState::ExportMap(CGame* pGame) {
 	if (editMapPath == NULL)
 		return;
 
-	sf::String sfText = editMapPath->getText();
-	std::string stText = sfText.toAnsiString();
-	const char* mapPath = stText.c_str();
-
-	m_Map.ExportToFile(pGame, (char*)mapPath);
+	sf::String sfText = editMapPath->getText().toAnsiString();
+	m_Map.SaveToFile(pGame, sfText);
 }
 void C6SMapMakerState::LoadMap(CGame* pGame) {
 	tgui::Panel::Ptr panelSettings = (tgui::Panel::Ptr)m_pGUI->get<tgui::Panel>("SettingsPanel");
@@ -39,16 +45,16 @@ void C6SMapMakerState::LoadMap(CGame* pGame) {
 	tgui::EditBox::Ptr editMapPath = (tgui::EditBox::Ptr)panelSettings->get<tgui::EditBox>(sf::String("EditMapPath"));
 	if (editMapPath == NULL)
 		return;
-	sf::String sfText = editMapPath->getText();
-	std::string stText = sfText.toAnsiString();
-	const char* mapPath = stText.c_str();
+	sf::String mapPath = editMapPath->getText().toAnsiString();
 
-	if (!m_Map.InitializeFromFile(pGame, (char*)mapPath)) {
-		printf("Failed to initialise map from file");
+	try {
+		m_Map.LoadFromFile(pGame, mapPath);
+	} catch(...) {
+		printf("Failed to initialise map from file!");
 	}
 }
 void C6SMapMakerState::TilePressed(int index, CGame* pGame) {
-	if (index < (int)m_vTileset.size()) {
+	if (index < (int)m_Map.GetTileTextureCount()) {
 		m_bPlacingTile = true;
 		m_iPlacingTileIndex = index;
 		HideMenu();
@@ -58,53 +64,50 @@ void C6SMapMakerState::TilePressed(int index, CGame* pGame) {
 	}
 }
 void C6SMapMakerState::LoadTileset(char* szTilset, CGame* pGame) {
-	if (m_vTileset.size() != 0) {
-		puts("Can't load tileset - tileset already loaded.");
-		return;
-	}
-
 	std::ifstream file(szTilset);
-	if (!file || !file.good()) {
+	if (!file.good()) {
 		printf("Unable to read from '%s' - bad file supplied\n", szTilset);
 		return;
 	}
 
-	int tileIndex = 0;
 	char lineBuf[TILESET_LINEBUFFER_SIZE];
 	while (file.getline(lineBuf, TILESET_LINEBUFFER_SIZE)) {
-		STilesetTile newTile;
-		if (newTile.texture.loadFromFile(lineBuf)) {
-			newTile.tileindex = tileIndex;
-			tileIndex++;
-			m_vTileset.push_back(newTile);
-			continue;
-		}
+		m_Map.InsertTileTexture(lineBuf);
 	}
 	file.close();
 
+	auto textures = m_Map.GetTileTextures();
 	tgui::Panel::Ptr tilesPanel = (tgui::Panel::Ptr)m_pGUI->get<tgui::Panel>("TilesPanel");
 	int xOffset = 0;
 	int yOffset = m_iTileTabOffset;
-	for (unsigned int i = 0; i < m_vTileset.size(); i++) {
-		tgui::Picture::Ptr picTile = std::make_shared<tgui::Picture>();
-		picTile->setSize(32, 32);
-		picTile->setPosition(tgui::Layout((float)xOffset), tgui::Layout((float)yOffset));
-		picTile->setTexture(m_vTileset[i].texture);
-		picTile->connect("Clicked", &C6SMapMakerState::TilePressed, this, m_vTileset[i].tileindex, pGame);
-		tilesPanel->add(picTile);
+	for (unsigned int i = 0; i < textures.size(); i++) {
+		auto tile = GUIFactory::Picture(textures[ i ], sf::Vector2i(32, 32));
+		tile->setPosition(tgui::Layout((float)xOffset), tgui::Layout((float)yOffset));
+		tile->connect("Clicked", &C6SMapMakerState::TilePressed, this, i, pGame);
+		tilesPanel->add(tile);
 
 		xOffset += 34;
-		if (xOffset+32 > tilesPanel->getSize().x) {
+		if (xOffset + 32 > tilesPanel->getSize().x) {
 			xOffset = 0;
 			yOffset += 34;
 		}
 	}
 	
-
-	printf("%i tiles loaded from tileset '%s'\n", ++tileIndex, szTilset);
+	printf("%i tiles loaded from tileset '%s'\n", textures.size(), szTilset);
+}
+void C6SMapMakerState::GridsizeChanged() {
+	auto panel = m_pGUI->get<tgui::Panel>("TilesPanel");
+	if (!panel)
+		return;
+	auto slider = panel->get<tgui::Slider>(SLD_GRIDSIZE_ID);
+	auto label = panel->get<tgui::Label>(SLD_GRIDSIZE_LABEL_ID);
+	if (!slider || !label)
+		return;
+	m_Map.SetGridSize((int)slider->getValue());
+	label->setText(std::to_string(slider->getValue()));
 }
 void C6SMapMakerState::ResizePressed() {
-	tgui::Panel::Ptr panelBackround = (tgui::Panel::Ptr)m_pGUI->get<tgui::Panel>("TilesPanel");
+	tgui::Panel::Ptr panelBackround = m_pGUI->get<tgui::Panel>("TilesPanel");
 	if (panelBackround == NULL)
 		return;
 	tgui::EditBox::Ptr editY = (tgui::EditBox::Ptr)panelBackround->get<tgui::EditBox>(sf::String("EditMapY"));
@@ -114,21 +117,21 @@ void C6SMapMakerState::ResizePressed() {
 	if (editX == NULL)
 		return;
 
-	sf::String sfTextX = editX->getText();
-	std::string stTextX = sfTextX.toAnsiString();
-	sf::String sfTextY = editY->getText();
-	std::string stTextY = sfTextY.toAnsiString();
+	sf::String sfTextX = editX->getText().toAnsiString();
+	sf::String sfTextY = editY->getText().toAnsiString();
 
-	int newWidth = strtol(stTextX.c_str(), NULL, 10);
-	int newHeight = strtol(stTextY.c_str(), NULL, 10);
-
-	if (newWidth <= 0 || newHeight <= 0 || newWidth > C6SMapMakerState::MapMaxWidth || newHeight > C6SMapMakerState::MapMaxHeight) {
-		printf("Can't resize - size (%i, %i) is out of range\n", newWidth, newHeight);
+	sf::Vector2i vNewSize;
+	if (!util::StrInt(sfTextX, vNewSize.x) || !util::StrInt(sfTextY, vNewSize.y)) {
+		CDebugLogger::Error("Map Rezise - Invalid size " + std::to_string(vNewSize));
 		return;
 	}
-
-	printf("Resizing map to (%i, %i)\n", newWidth, newHeight);
-	m_Map.Resize(newWidth, newHeight, C6SMapMakerState::MapDefaultGridSize);
+	try {
+		CDebugLogger::Msg("MapMaker::ResizePressed - Resizing to " + std::to_string(vNewSize));
+		m_Map.Resize(vNewSize);
+	}
+	catch (const std::exception& e) {
+		CDebugLogger::Error(std::string("MapMaker::Resize failed - ") + e.what());
+	}
 }
 
 void C6SMapMakerState::LoadTilesetPressed(CGame* pGame) {
@@ -149,10 +152,16 @@ void C6SMapMakerState::LoadTilesetPressed(CGame* pGame) {
 
 void C6SMapMakerState::BeginTileTypePlacement(CGame* pGame, int eTileType) {
 	m_bPlacingTileType = true;
-	m_ePlacingTileType = C6SMap::SMapTile::ETileType(eTileType);
+	m_ePlacingTileType = SMapTile::EMapTileType(eTileType);
 	HideMenu();
+	m_Map.EnableTileTypeRender(true);
 	/* Disable GUI to allow us to receive mouse data */
 	pGame->m_WindowManager.SetGUIActive(false);
+}
+
+void C6SMapMakerState::EndTileTypePlacement(CGame* pGame) {
+
+	tgui::CheckBox::Ptr check = (tgui::CheckBox::Ptr)m_pGUI->get<tgui::CheckBox>(sf::String("CheckGUI"));
 }
 
 void C6SMapMakerState::GUIChecked() {
@@ -177,7 +186,7 @@ void C6SMapMakerState::BoundingBoxChecked() {
 	tgui::CheckBox::Ptr check = (tgui::CheckBox::Ptr)panelSettings->get<tgui::CheckBox>(sf::String("CheckBoundingBox"));
 	if (check == NULL)
 		return;
-	m_bBoundingBox = check->isChecked();
+	m_Map.EnableBoundingBox(check->isChecked());
 }
 
 void C6SMapMakerState::GridChecked() {
@@ -186,8 +195,8 @@ void C6SMapMakerState::GridChecked() {
 		return;
 	tgui::CheckBox::Ptr check = (tgui::CheckBox::Ptr)panelSettings->get<tgui::CheckBox>(sf::String("CheckGrid"));
 	if (check == NULL)
-		return;
-	m_bGrid = check->isChecked();
+		return; 
+	m_Map.EnableGrid(check->isChecked());
 }
 
 void C6SMapMakerState::TileTypeChecked() {
@@ -197,7 +206,7 @@ void C6SMapMakerState::TileTypeChecked() {
 	tgui::CheckBox::Ptr check = (tgui::CheckBox::Ptr)panelSettings->get<tgui::CheckBox>(sf::String("CheckTileType"));
 	if (check == NULL)
 		return;
-	m_bTileType = check->isChecked();
+	m_Map.EnableTileTypeRender(check->isChecked());
 }
 
 void C6SMapMakerState::LoadStaticBackground() {
@@ -208,19 +217,8 @@ void C6SMapMakerState::LoadStaticBackground() {
 	if (editStatic == NULL)
 		return;
 
-	sf::String sfText = editStatic->getText();
-	std::string stText = sfText.toAnsiString();
-	const char* staticBackground = stText.c_str();
-
-	printf("Loading static background '%s'\n", stText.c_str());
-	if (m_Map.LoadStaticBackground((char*)staticBackground)) {
-		/* Save static background path */
-		if (m_szStaticBackground != 0) {
-			free(m_szStaticBackground);
-		}
-		m_szStaticBackground = (char*)malloc(strlen(staticBackground) + 1);
-		memcpy(m_szStaticBackground, staticBackground, strlen(staticBackground) + 1);
-	}
+	sf::String sBackground = editStatic->getText();
+	m_Map.LoadStaticBackground(sBackground);
 }
 
 void C6SMapMakerState::LoadDynamicBackground1() {
@@ -235,19 +233,12 @@ void C6SMapMakerState::LoadDynamicBackground1() {
 		return;
 	float moveScale = sliderScale->getValue() / 10.0f;
 	
-	sf::String sfText = editDynamic->getText();
-	std::string stText = sfText.toAnsiString();
-	const char* background = stText.c_str();
-
-	printf("Loading dynamic background '%s' with movescale %f\n", background, moveScale);
-	if (m_Map.LoadDynamicBackground((char*)background, 1, moveScale)) {
-		/* Save static background path */
-		if (m_szDynamicBackground1 != 0) {
-			free(m_szDynamicBackground1);
-		}
-		m_szDynamicBackground1 = (char*)malloc(strlen(background) + 1);
-		memcpy(m_szDynamicBackground1, background, strlen(background) + 1);
-		m_fDynamicBackground1MoveScale = moveScale;
+	sf::String sBackgroundFile = editDynamic->getText();
+	try {
+		CDebugLogger::Msg("Loading dynamic background " + sBackgroundFile + ", movescale " + to_string(moveScale));
+		m_Map.LoadDynamicBackground(sBackgroundFile, sf::Vector2f(moveScale, moveScale));
+	} catch (std::exception e) {
+		CDebugLogger::Error("Failed to load dynamic background " + sBackgroundFile);
 	}
 }
 
@@ -260,26 +251,25 @@ void C6SMapMakerState::ExitToMenuPressed(CGame* pGame) {
 	pGame->m_StateHandler.ChangeState(C6SMenuState::Instance(), pGame);
 }
 
-void TabSelected(tgui::Gui* pGUI)
-{
-	tgui::Tab::Ptr tab = (tgui::Tab::Ptr)pGUI->get<tgui::Tab>(sf::String("TabsMenu"));
+void TabSelected(tgui::Gui* pGUI) {
+	tgui::Tabs::Ptr tab = pGUI->get<tgui::Tabs>("TabsMenu");
 	int selectedTab = tab->getSelectedIndex();
 
 	switch (selectedTab) {
 	case 0:
-		pGUI->get("BackgroundPanel")->show();
-		pGUI->get("TilesPanel")->hide();
-		pGUI->get("SettingsPanel")->hide();
+		pGUI->get("BackgroundPanel")->setVisible(true);
+		pGUI->get("TilesPanel")->setVisible(false);
+		pGUI->get("SettingsPanel")->setVisible(false);
 		break;
 	case 1:
-		pGUI->get("BackgroundPanel")->hide();
-		pGUI->get("TilesPanel")->show();
-		pGUI->get("SettingsPanel")->hide();
+		pGUI->get("BackgroundPanel")->setVisible(false);
+		pGUI->get("TilesPanel")->setVisible(true);
+		pGUI->get("SettingsPanel")->setVisible(false);
 		break;
 	case 2:
-		pGUI->get("BackgroundPanel")->hide();
-		pGUI->get("TilesPanel")->hide();
-		pGUI->get("SettingsPanel")->show();
+		pGUI->get("BackgroundPanel")->setVisible(false);
+		pGUI->get("TilesPanel")->setVisible(false);
+		pGUI->get("SettingsPanel")->setVisible(true);
 		break;
 	default:
 		break;
@@ -287,27 +277,27 @@ void TabSelected(tgui::Gui* pGUI)
 }
 
 void C6SMapMakerState::HideMenu() {
-	tgui::Tab::Ptr tab = (tgui::Tab::Ptr)m_pGUI->get<tgui::Tab>(sf::String("TabsMenu"));
-	tab->hide();
-	m_pGUI->get("BackgroundPanel")->hide();
-	m_pGUI->get("TilesPanel")->hide();
-	m_pGUI->get("SettingsPanel")->hide();
+	tgui::Tabs::Ptr tab = m_pGUI->get<tgui::Tabs>("TabsMenu");
+	tab->setVisible(false);
+	m_pGUI->get("BackgroundPanel")->setVisible(false);
+	m_pGUI->get("TilesPanel")->setVisible(false);
+	m_pGUI->get("SettingsPanel")->setVisible(false);
 }
 
 void C6SMapMakerState::ShowMenu() {
-	tgui::Tab::Ptr tab = (tgui::Tab::Ptr)m_pGUI->get<tgui::Tab>(sf::String("TabsMenu"));
-	tab->show();
+	tgui::Tabs::Ptr tab = m_pGUI->get<tgui::Tabs>("TabsMenu");
+	tab->setVisible(true);
 
 	int selectedTab = tab->getSelectedIndex();
 	switch (selectedTab) {
 	case 0:
-		m_pGUI->get("BackgroundPanel")->show();
+		m_pGUI->get("BackgroundPanel")->setVisible(true);
 		break;
 	case 1:
-		m_pGUI->get("TilesPanel")->show();
+		m_pGUI->get("TilesPanel")->setVisible(true);
 		break;
 	case 2:
-		m_pGUI->get("SettingsPanel")->show();
+		m_pGUI->get("SettingsPanel")->setVisible(true);
 		break;
 	default:
 		break;
@@ -315,49 +305,47 @@ void C6SMapMakerState::ShowMenu() {
 }
 
 void C6SMapMakerState::Init(CGame* pGame) {
-	if (!IsAlreadyInitialised()) {
+	if (IsAlreadyInitialised()) {
+		// Set view to correct size and position
+		// Fixes case where screen has been resized after GUI is initialized
+		m_pGUI->setView(pGame->m_WindowManager.GetGUIView());
 
-		/* Default loaded data to NULL */
-		m_szStaticBackground = NULL;
-		m_szDynamicBackground1 = NULL;
-		m_fDynamicBackground1MoveScale = 0.0f;
-
-		m_iTileTabOffset = 0;
-
-		/* Map */
-		m_Map.InitializeDev(ASSET_DEV_BACKGROUND, C6SMapMakerState::MapDefaultWidth, C6SMapMakerState::MapDefaultHeight, C6SMapMakerState::MapDefaultGridSize);
-
-		/* GUI */
-		m_pGUI = new tgui::Gui(*pGame->m_WindowManager.GetWindow());
-		m_bGUIEnabled = true;
-
+	} else {
+		// Create map
 		try {
+			m_Map.CreateBlank(ASSET_DEV_BACKGROUND);
+		} catch (std::exception e) {
+			CDebugLogger::Error(e.what());
+			try {
+				// Try again with no background
+				m_Map.CreateBlank();
+			} catch (std::exception e2) {
+				CDebugLogger::Fatal(std::string("DevMap creation failed twice: ") + e2.what());
+				exit(-1);
+			}
+		}
+
+		/* Create GUI */
+		try {
+			m_pGUI = new tgui::Gui(*pGame->m_WindowManager.GetWindow());
+			m_bGUIEnabled = true;
+
 			// theme 
-			tgui::Theme::Ptr theme = std::make_shared<tgui::Theme>("widgets/Black.txt");
+			//tgui::Theme::Ptr theme = std::make_shared<tgui::Theme>("widgets/Chris.txt");
 
 			// Enable/disable GUI
-			tgui::CheckBox::Ptr checkGUI = theme->load("Checkbox");
-			checkGUI->setSize(25, 25);
-			checkGUI->setPosition(0, 0);
-			checkGUI->setText("Menu");
-			checkGUI->setTextSize(24);
-			checkGUI->connect("checked unchecked", &C6SMapMakerState::GUIChecked, this);
-			checkGUI->check();
-			m_pGUI->add(checkGUI, "CheckGUI");
-
+			GUILayout::Checkbox(m_pGUI, tgui::Layout2d(0.0f, 0.0f), std::string("CheckGUI"), std::string("Menu"), true, &C6SMapMakerState::GUIChecked, this);
+			//GUILayout::Checkbox(m_pGUI, tgui::Layout2d(0.0f, 0.0f), std::string("CheckGUI"), std::string("Menu"), true, &C6SMapMakerState::GUIChecked, this);
+		
 			// Tabbed menu
-			tgui::Tab::Ptr tabs = theme->load("Tab");
-			tabs->add("Background");
-			tabs->add("Tiles");
-			tabs->add("Settings");
+			auto tabs = GUIFactory::Tabs("Background", "Tiles", "Settings");
 			tabs->setPosition(150, 0);
 			tabs->connect("TabSelected", TabSelected, m_pGUI);
 			m_pGUI->add(tabs, "TabsMenu");
 
 			// Background panel
-			tgui::Panel::Ptr backgroundPanel = theme->load("Panel");
-			backgroundPanel->setSize(400, 300);
-			backgroundPanel->setPosition(tabs->getPosition().x, tabs->getPosition().y + tabs->getTabHeight());
+			auto backgroundPanel = GUIFactory::PanelSize(MENU_SIZE);
+			backgroundPanel->setPosition(tabs->getPosition().x, tabs->getPosition().y + tabs->getSize().y);
 			m_pGUI->add(backgroundPanel, "BackgroundPanel");
 
 			// Tiles Panel
@@ -370,206 +358,145 @@ void C6SMapMakerState::Init(CGame* pGame) {
 
 
 			/* ----		Tiles Panel Objects		----	*/
-			tgui::Layout tilesVertOffset(10.0f);
+			tgui::Layout2d tilesVertOffset(0.0f, 10.0f);
 
-			tgui::Label::Ptr labelTileTypes = std::make_shared<tgui::Label>();
-			labelTileTypes->setText("Set Tile Types:");
-			labelTileTypes->setPosition(0.0f, tilesVertOffset); tilesVertOffset += 20.0f;
-			labelTileTypes->setTextColor(sf::Color::White);
-			tilesPanel->add(labelTileTypes);
-			/* Air */
-			tgui::Button::Ptr btnAir = theme->load("Button");
-			btnAir->setText("Air");
-			btnAir->setPosition(0.0f, tilesVertOffset);
-			btnAir->setSize(100, 20.0f);
-			btnAir->connect("pressed", &C6SMapMakerState::BeginTileTypePlacement, this, pGame, C6SMap::SMapTile::TYPE_AIR);
-			tilesPanel->add(btnAir);
-			/* Solid */
-			tgui::Button::Ptr btnSolid = theme->load("Button");
-			btnSolid->setText("Solid");
-			btnSolid->setPosition(100.0f, tilesVertOffset);
-			btnSolid->setSize(100, 20.0f);
-			btnSolid->connect("pressed", &C6SMapMakerState::BeginTileTypePlacement, this, pGame, C6SMap::SMapTile::TYPE_SOLID);
-			tilesPanel->add(btnSolid);
-			/* Ladder */
-			tgui::Button::Ptr btnLadder = theme->load("Button");
-			btnLadder->setText("Ladder");
-			btnLadder->setPosition(200.0f, tilesVertOffset); 
-			btnLadder->setSize(100, 20.0f);
-			btnLadder->connect("pressed", &C6SMapMakerState::BeginTileTypePlacement, this, pGame, C6SMap::SMapTile::TYPE_LADDER);
-			tilesPanel->add(btnLadder);
-			/* Boundary */
-			tgui::Button::Ptr btnBoundary = theme->load("Button");
-			btnBoundary->setText("Boundary");
-			btnBoundary->setPosition(300.0f, tilesVertOffset); 
-			btnBoundary->setSize(100, 20.0f);
-			btnBoundary->connect("pressed", &C6SMapMakerState::BeginTileTypePlacement, this, pGame, C6SMap::SMapTile::TYPE_BOUNDARY);
-			tilesPanel->add(btnBoundary);
-			// NEXT LAYER 
-			tilesVertOffset += 20.0f;
-			/* Partial Solid */
-			tgui::Button::Ptr btnPartial = theme->load("Button");
-			btnPartial->setText("Partial");
-			btnPartial->setPosition(0.0f, tilesVertOffset);
-			btnPartial->setSize(100, 20.0f);
-			btnPartial->connect("pressed", &C6SMapMakerState::BeginTileTypePlacement, this, pGame, C6SMap::SMapTile::TYPE_PARTIALSOLID);
-			tilesPanel->add(btnPartial);
-			/* Partial Solid */
-			tgui::Button::Ptr btnWater = theme->load("Button");
-			btnWater->setText("Water");
-			btnWater->setPosition(100.0f, tilesVertOffset);
-			btnWater->setSize(100, 20.0f);
-			btnWater->connect("pressed", &C6SMapMakerState::BeginTileTypePlacement, this, pGame, C6SMap::SMapTile::TYPE_WATER);
-			tilesPanel->add(btnWater);
-			/* InstantKill */
-			tgui::Button::Ptr btnDie = theme->load("Button");
-			btnDie->setText("Death");
-			btnDie->setPosition(200.0f, tilesVertOffset);
-			btnDie->setSize(100, 20.0f);
-			btnDie->connect("pressed", &C6SMapMakerState::BeginTileTypePlacement, this, pGame, C6SMap::SMapTile::TYPE_INSTADEATH);
-			tilesPanel->add(btnDie);
-			/* TYPE_SLOWDAMAGE */
-			tgui::Button::Ptr btnHurt = theme->load("Button");
-			btnHurt->setText("Hurt");
-			btnHurt->setPosition(300.0f, tilesVertOffset);
-			btnHurt->setSize(100, 20.0f);
-			btnHurt->connect("pressed", &C6SMapMakerState::BeginTileTypePlacement, this, pGame, C6SMap::SMapTile::TYPE_SLOWDAMAGE);
-			tilesPanel->add(btnHurt);
-			// NEXT LAYER 
-			tilesVertOffset += 20.0f;
+			GUILayout::LabelContentVertical(tilesPanel, tilesVertOffset, "Set Tile Types:");
+			GUILayout::MiniButtonHorizontal(tilesPanel, tilesVertOffset, "Air", &C6SMapMakerState::BeginTileTypePlacement, this, pGame, SMapTile::TYPE_AIR);
+			GUILayout::MiniButtonHorizontal(tilesPanel, tilesVertOffset, "Solid", &C6SMapMakerState::BeginTileTypePlacement, this, pGame, SMapTile::TYPE_SOLID);
+			GUILayout::MiniButtonHorizontal(tilesPanel, tilesVertOffset, "Ladder", &C6SMapMakerState::BeginTileTypePlacement, this, pGame, SMapTile::TYPE_LADDER);
+			GUILayout::MiniButtonHorizontal(tilesPanel, tilesVertOffset, "Boundary", &C6SMapMakerState::BeginTileTypePlacement, this, pGame, SMapTile::TYPE_BOUNDARY);
+			GUILayout::MiniButtonHorizontal(tilesPanel, tilesVertOffset, "Partial", &C6SMapMakerState::BeginTileTypePlacement, this, pGame, SMapTile::TYPE_PARTIALSOLID);
+			GUILayout::MiniButtonHorizontal(tilesPanel, tilesVertOffset, "Water", &C6SMapMakerState::BeginTileTypePlacement, this, pGame, SMapTile::TYPE_WATER);
+			GUILayout::MiniButtonHorizontal(tilesPanel, tilesVertOffset, "Death", &C6SMapMakerState::BeginTileTypePlacement, this, pGame, SMapTile::TYPE_INSTADEATH);
+			GUILayout::MiniButtonHorizontal(tilesPanel, tilesVertOffset, "Hurt", &C6SMapMakerState::BeginTileTypePlacement, this, pGame, SMapTile::TYPE_SLOWDAMAGE);
+			GUILayout::EndMiniButtonsHorizontal(tilesPanel, tilesVertOffset);
 
-			tgui::Label::Ptr labelTiles = std::make_shared<tgui::Label>();
-			labelTiles->setText("Load Tiles:");
-			labelTiles->setPosition(0.0f, tilesVertOffset); tilesVertOffset += 20.0f;
-			labelTiles->setTextColor(sf::Color::White);
-			tilesPanel->add(labelTiles);
+			/*InsertHorizontalButton(theme, tilesPanel, tilesVertOffset, TILETYPES_BTN_SET_SCALE, "Air", &C6SMapMakerState::BeginTileTypePlacement, this, pGame, SMapTile::TYPE_AIR);
+			InsertHorizontalButton(theme, tilesPanel, tilesVertOffset, TILETYPES_BTN_SET_SCALE, "Solid", &C6SMapMakerState::BeginTileTypePlacement, this, pGame, SMapTile::TYPE_SOLID);
+			InsertHorizontalButton(theme, tilesPanel, tilesVertOffset, TILETYPES_BTN_SET_SCALE, "Ladder", &C6SMapMakerState::BeginTileTypePlacement, this, pGame, SMapTile::TYPE_LADDER);
+			InsertHorizontalButton(theme, tilesPanel, tilesVertOffset, TILETYPES_BTN_SET_SCALE, "Boundary", &C6SMapMakerState::BeginTileTypePlacement, this, pGame, SMapTile::TYPE_BOUNDARY);
+			InsertHorizontalButton(theme, tilesPanel, tilesVertOffset, TILETYPES_BTN_SET_SCALE, "Partial", &C6SMapMakerState::BeginTileTypePlacement, this, pGame, SMapTile::TYPE_PARTIALSOLID);
+			InsertHorizontalButton(theme, tilesPanel, tilesVertOffset, TILETYPES_BTN_SET_SCALE, "Water", &C6SMapMakerState::BeginTileTypePlacement, this, pGame, SMapTile::TYPE_WATER);
+			InsertHorizontalButton(theme, tilesPanel, tilesVertOffset, TILETYPES_BTN_SET_SCALE, "Death", &C6SMapMakerState::BeginTileTypePlacement, this, pGame, SMapTile::TYPE_INSTADEATH);
+			InsertHorizontalButton(theme, tilesPanel, tilesVertOffset, TILETYPES_BTN_SET_SCALE, "Hurt", &C6SMapMakerState::BeginTileTypePlacement, this, pGame, SMapTile::TYPE_SLOWDAMAGE);
+			EndHorizontalButtons(theme, tilesPanel, tilesVertOffset, TILETYPES_BTN_SET_SCALE);
+			*/
+			GUILayout::VerticalSpacer(tilesVertOffset);
 
-			tgui::EditBox::Ptr editLoadTileset = theme->load("EditBox");
-			editLoadTileset->setSize(300, 30);
-			editLoadTileset->setPosition(0, tilesVertOffset); 
-			editLoadTileset->setText("");
-			editLoadTileset->setTextSize(12);
+			GUILayout::LabelContentVertical(tilesPanel, tilesVertOffset, "Load Tiles:");
+
+			auto editLoadTileset = GUIFactory::EditboxMedium();
+			editLoadTileset->setPosition(tgui::Layout2d(0.0f, tilesVertOffset.y)); 
 			tilesPanel->add(editLoadTileset, "EditLoadTileset");
 
-			tgui::Button::Ptr btnLoadTileset = theme->load("Button");
-			btnLoadTileset->setSize(tilesPanel->getSize().x - 300, 30);
-			btnLoadTileset->setPosition(250, tilesVertOffset); tilesVertOffset += 30.0f;
-			btnLoadTileset->setText("Load");
+			tgui::Button::Ptr btnLoadTileset = GUIFactory::ButtonMedium("Load");
+			btnLoadTileset->setPosition(tgui::Layout2d(250.0f, tilesVertOffset.y));
 			btnLoadTileset->connect("Pressed", &C6SMapMakerState::LoadTilesetPressed, this, pGame);
+			tilesVertOffset.y = tilesVertOffset.y + GUIUtil::MaxHeight(btnLoadTileset, editLoadTileset) + VERTICAL_PADDING;
 			tilesPanel->add(btnLoadTileset);
 
-			tgui::Label::Ptr labelTilePlaceMode = std::make_shared<tgui::Label>();
-			labelTilePlaceMode->setText("Placement Mode:");
-			labelTilePlaceMode->setPosition(0.0f, tilesVertOffset); tilesVertOffset += 20.0f;
-			labelTilePlaceMode->setTextColor(sf::Color::White);
-			tilesPanel->add(labelTilePlaceMode);
+			GUILayout::VerticalSpacer(tilesVertOffset);
 
+			GUILayout::LabelContentVertical(tilesPanel, tilesVertOffset, "Placement Mode:");
+
+			/*
 			tgui::RadioButton::Ptr rdioStickerMode = theme->load("RadioButton");
 			rdioStickerMode->setSize(30, 30);
-			rdioStickerMode->setPosition(10, tilesVertOffset); 
+			rdioStickerMode->setPosition(tgui::Layout2d(10.0f, tilesVertOffset.y)); 
 			rdioStickerMode->setText("Sticker");
 //rdioStickerMode->connect("Checked Unchecked", &C6SMapMakerState::LoadTilesetPressed, this, pGame);
 			tilesPanel->add(rdioStickerMode);
 
 			tgui::RadioButton::Ptr rdioTilesMode = theme->load("RadioButton");
 			rdioTilesMode->setSize(30, 30);
-			rdioTilesMode->setPosition(150, tilesVertOffset); tilesVertOffset += 30.0f;
+			rdioTilesMode->setPosition(tgui::Layout2d(150.0f, tilesVertOffset.y));
 			rdioTilesMode->setText("Tiles");
 		//	rdioTilesMode->connect("Checked Unchecked", &C6SMapMakerState::LoadTilesetPressed, this, pGame);
+			tilesVertOffset.y += tgui::bindHeight(btnLoadTileset) + VERTICAL_PADDING;
 			tilesPanel->add(rdioTilesMode);
 
+			GUILayout::VerticalSpacer(tilesVertOffset);*/
+
 			/* Map resize X*/
-			tgui::EditBox::Ptr editMapX = theme->load("EditBox");
+			tgui::EditBox::Ptr editMapX = GUIFactory::EditboxMedium();
 			editMapX->setSize(150, 30);
-			editMapX->setPosition(0, tilesVertOffset);
+			editMapX->setPosition(tilesVertOffset);
 			editMapX->setText("32");
 			editMapX->setTextSize(12);
 			tilesPanel->add(editMapX, "EditMapX");
 
 			/* Map resize Y*/
-			tgui::EditBox::Ptr editMapY = theme->load("EditBox");
+			tgui::EditBox::Ptr editMapY = GUIFactory::EditboxMedium();
 			editMapY->setSize(150, 30);
-			editMapY->setPosition(150, tilesVertOffset); tilesVertOffset += 30.0f;
+			editMapY->setPosition(tgui::Layout2d(150.0f, tilesVertOffset.y));
 			editMapY->setText("32");
 			editMapY->setTextSize(12);
+			tilesVertOffset.y = tilesVertOffset.y + GUIUtil::MaxHeight(editMapX, editMapY) + VERTICAL_PADDING;
 			tilesPanel->add(editMapY, "EditMapY");
 
 			/* Map resize btn */
-			tgui::Button::Ptr btnResize = theme->load("Button");
-			btnResize->setSize(tilesPanel->getSize().x - 300, 30);
-			btnResize->setPosition(250, tilesVertOffset); tilesVertOffset += 30.0f;
-			btnResize->setText("Resize Map");
-			btnResize->connect("Pressed", &C6SMapMakerState::ResizePressed, this);
-			tilesPanel->add(btnResize);
+			GUILayout::Button(tilesPanel, tilesVertOffset, "", "Resize Map", &C6SMapMakerState::ResizePressed, this);
+
+			GUILayout::VerticalSpacer(tilesVertOffset);
+
+			GUILayout::SliderInt(tilesPanel, tilesVertOffset, SLD_GRIDSIZE_ID, SLD_GRIDSIZE_LABEL_ID,
+				"Tile Size", m_Map.GetGridSize(), m_Map.GetGridSizeLimits(), &C6SMapMakerState::GridsizeChanged, this);
 
 			// Save offset so tiles can be added later 
-			m_iTileTabOffset = (int)tilesVertOffset.getValue();
+			m_iTileTabOffset = (int)tilesVertOffset.y.getValue();
+
 
 			/* ----		Settings Panel Objects	----	*/
-			tgui::Layout settingsVertOffset(10.0f);
-			tgui::CheckBox::Ptr checkBoundingBox = theme->load("CheckBox");
-			checkBoundingBox->setSize(25, 25);
-			checkBoundingBox->setPosition(0, settingsVertOffset); settingsVertOffset += 25.0f;
-			checkBoundingBox->setText("Show Bounding Box");
-			checkBoundingBox->check();
-			checkBoundingBox->connect("checked unchecked", &C6SMapMakerState::BoundingBoxChecked, this);
-			settingsPanel->add(checkBoundingBox, "CheckBoundingBox");
+			tgui::Layout2d settingsVertOffset(0.0f, 10.0f);
 
-			tgui::CheckBox::Ptr checkGrid = theme->load("CheckBox");
-			checkGrid->setSize(25, 25);
-			checkGrid->setPosition(0, settingsVertOffset); settingsVertOffset += 25.0f;
-			checkGrid->setText("Show Grid");
-			checkGrid->check();
-			checkGrid->connect("checked unchecked", &C6SMapMakerState::GridChecked, this);
-			settingsPanel->add(checkGrid, "CheckGrid");
+			m_Map.EnableBoundingBox(true);
+			m_Map.EnableGrid(true);
+			m_Map.EnableTileTypeRender(false);
 
-			tgui::CheckBox::Ptr checkTileType = theme->load("CheckBox");
-			checkTileType->setSize(25, 25);
-			checkTileType->setPosition(0, settingsVertOffset); settingsVertOffset += 35.0f;
-			checkTileType->setText("Show Tile Types");
-			checkTileType->uncheck();
-			checkTileType->connect("checked unchecked", &C6SMapMakerState::TileTypeChecked, this);
-			settingsPanel->add(checkTileType, "CheckTileType");
+			GUILayout::LabelContentVertical(settingsPanel, settingsVertOffset, "Debug Visualisations:");
+			GUILayout::Checkbox(settingsPanel, settingsVertOffset, CHK_BOUNDINGBOX_ID, "Show Bounding Box", true, &C6SMapMakerState::BoundingBoxChecked, this);
+			GUILayout::Checkbox(settingsPanel, settingsVertOffset, CHK_GRID_ID, "Show Grid", true, &C6SMapMakerState::GridChecked, this);
+			GUILayout::Checkbox(settingsPanel, settingsVertOffset, CHK_TILE_TYPE_ID, "Show Tile Types", false, &C6SMapMakerState::TileTypeChecked, this);
 
-			tgui::EditBox::Ptr editMapPath = theme->load("EditBox");
+			GUILayout::VerticalSpacer(tilesVertOffset);
+
+			auto editMapPath = GUIFactory::EditboxMedium();
 			editMapPath->setSize(300, 30);
-			editMapPath->setPosition(0, settingsVertOffset); settingsVertOffset += 30.0f;
+			editMapPath->setPosition(0, settingsVertOffset.y); settingsVertOffset.y = settingsVertOffset.y + tgui::bindHeight(editMapPath) + VERTICAL_PADDING;
 			editMapPath->setText("");
 			editMapPath->setTextSize(12);
 			settingsPanel->add(editMapPath, "EditMapPath");
 
+			/*
 			tgui::Button::Ptr btnLoadMap = theme->load("Button");
 			btnLoadMap->setSize(settingsPanel->getSize().x/2, 30);
 			btnLoadMap->setPosition(0, settingsVertOffset);
 			btnLoadMap->setText("Load Map");
 			btnLoadMap->connect("Pressed", &C6SMapMakerState::LoadMap, this, pGame);
 			settingsPanel->add(btnLoadMap);
+*/
+			
+			GUILayout::MiniButtonHorizontal(settingsPanel, settingsVertOffset, "Load Map", &C6SMapMakerState::LoadMap, this, pGame);
+			GUILayout::MiniButtonHorizontal(settingsPanel, settingsVertOffset, "Save Map", &C6SMapMakerState::ExportMap, this, pGame);
+			GUILayout::MiniButtonHorizontal(settingsPanel, settingsVertOffset, "Publish Map", &C6SMapMakerState::PublishMap, this, pGame);
+			GUILayout::EndMiniButtonsHorizontal(settingsPanel, settingsVertOffset);
 
-			tgui::Button::Ptr btnSaveMap = theme->load("Button");
-			btnSaveMap->setSize(settingsPanel->getSize().x / 2, 30);
-			btnSaveMap->setPosition(settingsPanel->getSize().x / 2, settingsVertOffset); settingsVertOffset += 30.0f;
-			btnSaveMap->setText("Export Map");
-			btnSaveMap->connect("Pressed", &C6SMapMakerState::ExportMap, this, pGame);
-			settingsPanel->add(btnSaveMap);
+			GUILayout::VerticalSpacer(settingsVertOffset);
+			settingsVertOffset.x = 0.0f;
+			/*
+			InsertButton(theme, settingsPanel, settingsVertOffset,  "Load Map", &C6SMapMakerState::LoadMap, this, pGame);
+			InsertButton(theme, settingsPanel, settingsVertOffset, CHK_BTN_SAVEMAP_ID, "Export Map", &C6SMapMakerState::ExportMap, this, pGame);*/
 
-			tgui::Button::Ptr btnExitToMenu = theme->load("Button");
-			btnExitToMenu->setSize(settingsPanel->getSize().x / 2, 30);
-			btnExitToMenu->setPosition(0, settingsVertOffset); settingsVertOffset += 30.0f;
-			btnExitToMenu->setText("Exit To Menu");
-			btnExitToMenu->connect("Pressed", &C6SMapMakerState::ExitToMenuPressed, this, pGame);
-			settingsPanel->add(btnExitToMenu);
+			GUILayout::Button(settingsPanel, settingsVertOffset, CHK_BTN_EXIT_ID, "Exit to Menu", &C6SMapMakerState::ExitToMenuPressed, this, pGame);
 
 
 			/* ----		Background Panel Objects	----	*/
-			tgui::Layout bgVertOffset(10.0f);
-			// STATIC BACKGROUND 
-			tgui::Label::Ptr labelStaticBackground = std::make_shared<tgui::Label>();
-			labelStaticBackground->setText("Static Background:");
-			labelStaticBackground->setPosition(0.0f, bgVertOffset); bgVertOffset += 20.0f;
-			labelStaticBackground->setTextColor(sf::Color::White);
-			backgroundPanel->add(labelStaticBackground);
+			tgui::Layout2d bgVertOffset(0.0f, 10.0f);
 
-			tgui::EditBox::Ptr editStaticBackground = theme->load("EditBox");
+			// STATIC BACKGROUND 
+			GUILayout::LabelContentVertical(backgroundPanel, bgVertOffset, "Static Background:");
+			GUILayout::EditBoxButton(backgroundPanel, bgVertOffset, "EditStaticBackground", "Load", "", &C6SMapMakerState::LoadStaticBackground, this);
+			/*tgui::EditBox::Ptr editStaticBackground = theme->load("EditBox");
 			editStaticBackground->setSize(300, 30);
 			editStaticBackground->setPosition(0, bgVertOffset);
 			editStaticBackground->setText("");
@@ -581,16 +508,15 @@ void C6SMapMakerState::Init(CGame* pGame) {
 			btnLoadStaticBackground->setPosition(250, bgVertOffset); bgVertOffset += 30.0f;
 			btnLoadStaticBackground->setText("Load");
 			btnLoadStaticBackground->connect("Pressed", &C6SMapMakerState::LoadStaticBackground, this);
-			backgroundPanel->add(btnLoadStaticBackground);
+			backgroundPanel->add(btnLoadStaticBackground);*/
+
+			GUILayout::VerticalSpacer(bgVertOffset);
 
 			// DYNAMIC BACKGROUND 1
-			tgui::Label::Ptr lblDynBackground1 = std::make_shared<tgui::Label>();
-			lblDynBackground1->setText("Dynamic Background 1:");
-			lblDynBackground1->setPosition(0, bgVertOffset); bgVertOffset += 20.0f;
-			lblDynBackground1->setTextColor(sf::Color::White);
-			backgroundPanel->add(lblDynBackground1);
+			GUILayout::LabelContentVertical(backgroundPanel, bgVertOffset, "Dynamic Background 1:");
+			GUILayout::EditBoxButton(backgroundPanel, bgVertOffset, "EditDynamicBackground1", "Load", "", &C6SMapMakerState::LoadDynamicBackground1, this);
 
-			tgui::EditBox::Ptr editDynBackground1 = theme->load("EditBox");
+			/*tgui::EditBox::Ptr editDynBackground1 = theme->load("EditBox");
 			editDynBackground1->setSize(300, 30);
 			editDynBackground1->setPosition(0, bgVertOffset);
 			editDynBackground1->setText("");
@@ -602,13 +528,11 @@ void C6SMapMakerState::Init(CGame* pGame) {
 			btnLoadDynBackground1->setPosition(250, bgVertOffset); bgVertOffset += 30.0f;
 			btnLoadDynBackground1->setText("Load");
 			btnLoadDynBackground1->connect("Pressed", &C6SMapMakerState::LoadDynamicBackground1, this);
-			backgroundPanel->add(btnLoadDynBackground1);
+			backgroundPanel->add(btnLoadDynBackground1);*/
 
-			tgui::Label::Ptr lblDynBackground1Scale = std::make_shared<tgui::Label>();
-			lblDynBackground1Scale->setText("Dynamic 1 Movescale:");
-			lblDynBackground1Scale->setPosition(0, bgVertOffset); bgVertOffset += 20.0f;
-			lblDynBackground1Scale->setTextColor(sf::Color::White);
-			backgroundPanel->add(lblDynBackground1Scale);
+			GUILayout::VerticalSpacer(bgVertOffset);
+			/*
+			GUILayout::LabelContentVertical(backgroundPanel, bgVertOffset, "Dynamic 1 Movescale:");
 
 			tgui::Slider::Ptr sliderDynBackground1Scale = theme->load("Slider");
 			sliderDynBackground1Scale->setSize(200, 20);
@@ -616,7 +540,7 @@ void C6SMapMakerState::Init(CGame* pGame) {
 			sliderDynBackground1Scale->setMinimum(0);
 			sliderDynBackground1Scale->setMaximum(100);
 			sliderDynBackground1Scale->setValue(20);
-			backgroundPanel->add(sliderDynBackground1Scale, "SliderDynamicBackground1Scale");
+			backgroundPanel->add(sliderDynBackground1Scale, "SliderDynamicBackground1Scale");*/
 
 		}
 		catch (...) {
@@ -633,13 +557,8 @@ void C6SMapMakerState::Init(CGame* pGame) {
 	m_bPlacingTileType = false;
 
 	/* Movement */
-	m_vLookPosition.X = m_vLookPosition.Y = 0;
+	m_vLookPosition = sf::Vector2f(0.0, 0.0f);
 	m_bMovingLeft = m_bMovingDown = m_bMovingRight = m_bMovingUp = false;
-	
-	/* Dev Drawing */
-	m_bBoundingBox = true;
-	m_bGrid = true;
-	m_bTileType = false;
 }
 
 void C6SMapMakerState::Cleanup(CGame* pGame) {
@@ -649,9 +568,6 @@ void C6SMapMakerState::Cleanup(CGame* pGame) {
 
 	// Free GUI resources 
 	delete m_pGUI;
-
-	// Free map resources 
-	m_Map.Destroy();
 }
 
 void C6SMapMakerState::Draw(CGame* pGame){
@@ -663,58 +579,41 @@ void C6SMapMakerState::Draw(CGame* pGame){
 
 	/* Map & debug draw */
 	m_Map.DrawLevel(pGame);
-	if (m_bBoundingBox)
-		m_Map.RenderBoundingBox(pGame);
-	if (m_bGrid)
-		m_Map.RenderGrid(pGame);
-	if (m_bTileType || m_bPlacingTileType)
-		m_Map.RenderTileType(pGame);
 
 	pWnd->RestoreDefaultCamera();
 
 	/* Show helper text if placing tile */
 	if (m_bPlacingTileType || m_bPlacingTile) {
-		pGame->m_Drawing.DrawTextCentredX(pGame->GetWindowMgr(), "Press <ESC> to end tile placement", pGame->m_WindowManager.GetScreenCentre().X, 50, 24, 255, 255, 255, 255);
+		pGame->m_Drawing.DrawTextCentredX(pGame->GetWindowMgr(), "Press <ESC> to end tile placement", pGame->m_WindowManager.GetScreenCentre().x, 50, 24, 255, 255, 255, 255);
 	}
 
 	/* GUI */
-	pGame->m_Drawing.DrawRectangleCentred(pGame->GetWindowMgr(), Vector2i(25, 10), 170, 30, 0, 0, 0, 255); // Background for menu toggle 
+	pGame->m_Drawing.DrawRectangleCentred(pGame->GetWindowMgr(), sf::Vector2i(25, 10), 170, 30, 0, 0, 0, 255); // Background for menu toggle 
 	m_pGUI->draw();
 }
 
-void C6SMapMakerState::Update(CGame* pGame){
-	float fLastFrameTime = pGame->m_Time.LastFrameTime();
-
-	float fFrameMove = LOOK_SPEED * fLastFrameTime;
-	Vector2f vMove(0.0f, 0.0f);
+void C6SMapMakerState::Update(CGame* pGame, float fFrameTime){
+	float fFrameMove = LOOK_SPEED * fFrameTime;
+	sf::Vector2f vMove(0.0f, 0.0f);
 
 	if (m_bMovingDown)
-		vMove.Y += 1.0f;
+		vMove.y += 1.0f;
 	if (m_bMovingUp)
-		vMove.Y -= 1.0f;
+		vMove.y -= 1.0f;
 	if (m_bMovingLeft)
-		vMove.X -= 1.0f;
+		vMove.x -= 1.0f;
 	if (m_bMovingRight)
-		vMove.X += 1.0f;
+		vMove.x += 1.0f;
 
-	if (vMove.X != 0.0f || vMove.Y != 0.0f) {
-		vMove.MakeUnitVector();
-		vMove *= fFrameMove;
-		m_vLookPosition.X += vMove.X;
-		m_vLookPosition.Y += vMove.Y;
+	if (vMove.x != 0.0f || vMove.y != 0.0f) {
+		vMove = vec::UnitVector(vMove) * fFrameMove;
+		m_vLookPosition += vMove;
 	}
 }
 
-
-
-void C6SMapMakerState::PlaceTileTexture(Vector2i vPosition) {
+void C6SMapMakerState::PlaceTileTexture(sf::Vector2i vPosition) {
 	// Find texture for selected tile, and place in map 
-	for (unsigned int i = 0; i < m_vTileset.size(); i++) {
-		if (m_vTileset[i].tileindex == m_iPlacingTileIndex) {
-			m_Map.SetTileTexture(vPosition, &m_vTileset[i].texture, m_iPlacingTileIndex);
-			break;
-		}
-	}
+	m_Map.SetTileTexture(vPosition, m_iPlacingTileIndex);
 }
 
 void C6SMapMakerState::HandleInput(CGame* pGame){
@@ -745,7 +644,7 @@ void C6SMapMakerState::HandleInput(CGame* pGame){
 		}
 	}
 
-	Vector2i mousePosition = pInput->GetMousePosition();
+	sf::Vector2i mousePosition = pInput->GetMousePosition();
 	bool bMouseUpdateRequired = mousePosition != m_vLastProcessedMousePosition;
 	if (bMouseUpdateRequired) m_vLastProcessedMousePosition = mousePosition;
 
@@ -760,9 +659,9 @@ void C6SMapMakerState::HandleInput(CGame* pGame){
 		while (pGame->m_Input.GetNextCursorEvent(curEvent)) {
 
 			// Apply first tile / texture placement 
-			if (curEvent.m_button == sf::Mouse::Button::Left && !curEvent.m_bRelease) {
+			if (curEvent.button == sf::Mouse::Button::Left && !curEvent.m_bRelease) {
 				// Perform screen->world transform, save mouse position 
-				Vector2i vMouse = pGame->m_WindowManager.ScreenToWorld(curEvent.m_vPosition);
+				sf::Vector2i vMouse = pGame->m_WindowManager.ScreenToWorld(curEvent.Position2i());
 				bMouseUpdateRequired = false;
 
 				// Update map 
@@ -774,20 +673,21 @@ void C6SMapMakerState::HandleInput(CGame* pGame){
 			}
 
 			// Apply first tile deletion
-			if (curEvent.m_button == sf::Mouse::Button::Right && !curEvent.m_bRelease) {
-				Vector2i vMouse = pGame->m_WindowManager.ScreenToWorld(curEvent.m_vPosition);
+			if (curEvent.button == sf::Mouse::Button::Right && !curEvent.m_bRelease) {
+				sf::Vector2i vMouse = pGame->m_WindowManager.ScreenToWorld(curEvent.Position2i());
 				bMouseUpdateRequired = false;
 
 				// Update tiles 
 				if (m_bPlacingTileType) {
-					m_Map.SetTileType(vMouse, C6SMap::SMapTile::TYPE_AIR);
-				} else { m_Map.DeleteTileTexture(vMouse); }
+					m_Map.DeleteTileType(vMouse);
+				}
+				else { m_Map.DeleteTileTexture(vMouse); }
 			}
 		}
 
 		// If mouse has moved, and left mouse is pressed, update tiles 
 		if (bMouseUpdateRequired && pInput->LeftMousePressed()) {
-			Vector2i vMouse = pGame->m_WindowManager.ScreenToWorld(mousePosition);
+			sf::Vector2i vMouse = pGame->m_WindowManager.ScreenToWorld(mousePosition);
 			bMouseUpdateRequired = false;
 
 			// Update tiles 
@@ -800,11 +700,11 @@ void C6SMapMakerState::HandleInput(CGame* pGame){
 
 		// If mouse has moved, and right mouse is pressed, delete tiles 
 		if (bMouseUpdateRequired && pInput->RightMousePressed()) {
-			Vector2i vMouse = pGame->m_WindowManager.ScreenToWorld(mousePosition);
+			sf::Vector2i vMouse = pGame->m_WindowManager.ScreenToWorld(mousePosition);
 
 			// Update tiles 
 			if (m_bPlacingTileType) {
-				m_Map.SetTileType(vMouse, C6SMap::SMapTile::TYPE_AIR);
+				m_Map.DeleteTileType(vMouse);
 			}
 			else {
 				m_Map.DeleteTileTexture(vMouse);

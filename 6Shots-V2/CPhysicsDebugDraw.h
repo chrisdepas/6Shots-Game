@@ -1,17 +1,18 @@
 #ifndef __CPHYSICSDEBUGDRAW_H__
 #define __CPHYSICSDEBUGDRAW_H__
-
-#include <Box2D\Box2D.h>
 class CGame;
 
 class CPhysicsDebugDraw : public b2Draw {
-	CGame* m_pGame; 
-	bool m_bInit;
-public:
+	CGame* m_pGame = NULL;
 
-	CPhysicsDebugDraw();
-	~CPhysicsDebugDraw();
-	void Init(CGame* pGame);
+public:
+	CPhysicsDebugDraw() = default;
+	CPhysicsDebugDraw(CGame* pGame) { Init(pGame); }
+
+	void Init(CGame* pGame) { m_pGame = pGame; }
+
+	operator bool() { return IsActive(); }
+	bool IsActive() { return m_pGame != NULL; }
 
 	/// Draw a closed polygon provided in CCW order.
 	void DrawPolygon(const b2Vec2* vertices, int32 vertexCount, const b2Color& color) override;
@@ -33,6 +34,7 @@ public:
 	void DrawTransform(const b2Transform& xf) override;
 
 	/// Draw a point.
-	void DrawPoint(const b2Vec2& p, float32 size, const b2Color& color) override;
+	// Removed in 2.3.1?
+//	void DrawPoint(const b2Vec2& p, float32 size, const b2Color& color) override;
 };
 #endif

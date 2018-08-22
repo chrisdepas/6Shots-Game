@@ -6,7 +6,6 @@
 Unknown date, notice added 12 December 2016
 */
 
-#include <SFML\Network.hpp>
 class C6SPacket : public sf::Packet {
 	int m_iPacketID;
 public: 

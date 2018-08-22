@@ -13,10 +13,10 @@ CBaseNPC::CBaseNPC() {
 
 void CBaseNPC::DefaultDraw(CGame* pGame) {
 	/* draw centre */
-	Vector2i c((int)m_vLocation.X, (int)(m_vLocation.Y - (float)m_height / 2.0f));
+	sf::Vector2i centre = sf::Vector2i(m_vLocation) - sf::Vector2i(0, m_height / 2);
 
 	/* Draw player sprite */
-	m_PlayerSprite.Draw(pGame, c, false);
+	m_PlayerSprite.Draw(pGame, centre, false);
 
 	/* Draw Hand */
 	float fWeaponRecoil = 0.0f;
@@ -27,7 +27,7 @@ void CBaseNPC::DefaultDraw(CGame* pGame) {
 
 	/* Draw equipped weapon */
 	if (IsWeaponEquipped()) {
-		Vector2i handPos = m_Hand.GetPosition2i();
+		sf::Vector2i handPos = m_Hand.GetPosition2i();
 		m_pWeapon->SetPosition(handPos);
 		m_pWeapon->DefaultDraw(pGame);
 	}
@@ -45,9 +45,7 @@ void CBaseNPC::Update(CGame* pGame, float fFrameTime) {
 	m_PlayerSprite.Update(fFrameTime, !GetBaseFlag(FL_FACING_LEFT));
 
 	// Update position
-	Vector2f physPos = m_PlayerPhysics.GetPosition();
-	m_vLocation.X = physPos.X;
-	m_vLocation.Y = physPos.Y + m_height / 2.0f;
+	m_vLocation = m_PlayerPhysics.GetPosition() + sf::Vector2f(0.0f, m_height / 2.0f);
 
 	// Update InAir
 	m_bInAir = m_PlayerPhysics.InAir();
@@ -79,17 +77,16 @@ void CBaseNPC::Update(CGame* pGame, float fFrameTime) {
 
 	/* Calculate hand velocity */
 	if (fCurTime - m_fLastHandPollTime > HAND_POLL_TIME) {
-		Vector2i handDelta = m_Hand.GetPosition2i() - m_vLastHandPoll;
-		m_vHandVelocity.X = handDelta.X / (fCurTime - m_fLastHandPollTime);
-		m_vHandVelocity.Y = handDelta.Y / (fCurTime - m_fLastHandPollTime);
+		sf::Vector2f handDelta(m_Hand.GetPosition2i() - m_vLastHandPoll);
+		m_vHandVelocity = handDelta / (fCurTime - m_fLastHandPollTime);
 
 		m_fLastHandPollTime = fCurTime;
 		m_vLastHandPoll = m_Hand.GetPosition2i();
 	}
 
 
-	Vector2i centre((int)m_vLocation.X, (int)(m_vLocation.Y - (float)m_height / 2.0f));
-	bool bFacingLeft = (m_Hand.GetPosition2f().X < centre.X);
+	sf::Vector2i centre = sf::Vector2i(m_vLocation) - sf::Vector2i(0, m_height / 2);
+	bool bFacingLeft = (m_Hand.GetPosition2f().x < centre.x);
 
 	/* Get hand direction & weapon recoil */
 	m_Hand.SetBaseFlag(FL_FACING_LEFT, bFacingLeft);
@@ -99,7 +96,7 @@ void CBaseNPC::Update(CGame* pGame, float fFrameTime) {
 		m_pWeapon->SetBaseFlag(FL_FACING_LEFT, bFacingLeft);
 	}
 
-	m_Hand.UpdatePosition(Vector2i(centre.X - 2, centre.Y - 2), centre, recoil);
+	m_Hand.UpdatePosition(centre - sf::Vector2i(2, 2), centre, recoil);
 }
 
 /* Think */

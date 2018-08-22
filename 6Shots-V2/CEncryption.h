@@ -1,9 +1,6 @@
 #ifndef __CENCRYPTION_H__
 #define __CENCRYPTION_H__
 
-#include <stdio.h>
-#include <string.h>
-
 class CEncrypt {
 
 public:

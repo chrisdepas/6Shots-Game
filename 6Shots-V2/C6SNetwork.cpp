@@ -240,11 +240,11 @@ C6SNetwork::CClientPlayerTick::CClientPlayerTick(C6SPacket& packet) {
 
 	m_bIsValid = true;
 }
-Vector2f C6SNetwork::CClientPlayerTick::GetPlayerPosition() {
-	return Vector2f(m_fPositionX, m_fPositionY);
+sf::Vector2f C6SNetwork::CClientPlayerTick::GetPlayerPosition() {
+	return sf::Vector2f(m_fPositionX, m_fPositionY);
 }
-Vector2f C6SNetwork::CClientPlayerTick::GetHandPosition() {
-	return Vector2f(m_fHandPositionX, m_fHandPositionY);
+sf::Vector2f C6SNetwork::CClientPlayerTick::GetHandPosition() {
+	return sf::Vector2f(m_fHandPositionX, m_fHandPositionY);
 }
 float C6SNetwork::CClientPlayerTick::GetAimAngle() {
 	return m_fAimAngle;
@@ -259,14 +259,14 @@ int C6SNetwork::CClientPlayerTick::GetUUID() {
 	return m_iClientUUID;
 }
 
-C6SPacket C6SNetwork::CClientPlayerTick::Create(int iClientUUID, Vector2f vPosition, Vector2f vHandPosition, float fAimAngle, bool bLeftFacing, bool bWalking) {
+C6SPacket C6SNetwork::CClientPlayerTick::Create(int iClientUUID, sf::Vector2f vPosition, sf::Vector2f vHandPosition, float fAimAngle, bool bLeftFacing, bool bWalking) {
 	C6SPacket packet;
 	packet.SetID(C6SPacket::ID_CLIENT_TICK);
 	packet << iClientUUID; 
-	packet << vPosition.X;
-	packet << vPosition.Y;
-	packet << vHandPosition.X;
-	packet << vHandPosition.Y;
+	packet << vPosition.x;
+	packet << vPosition.y;
+	packet << vHandPosition.x;
+	packet << vHandPosition.y;
 	packet << fAimAngle;
 	packet << bLeftFacing;
 	packet << bWalking;
@@ -296,11 +296,11 @@ C6SNetwork::CServerPlayerUpdate::CServerPlayerUpdate(C6SPacket& packet) {
 
 	m_bIsValid = (m_iClientID >= 0);
 }
-Vector2f C6SNetwork::CServerPlayerUpdate::GetPosition() {
-	return Vector2f(m_fPositionX, m_fPositionY);
+sf::Vector2f C6SNetwork::CServerPlayerUpdate::GetPosition() {
+	return sf::Vector2f(m_fPositionX, m_fPositionY);
 }
-Vector2f C6SNetwork::CServerPlayerUpdate::GetHandPosition() {
-	return Vector2f(m_fHandPositionX, m_fHandPositionY);
+sf::Vector2f C6SNetwork::CServerPlayerUpdate::GetHandPosition() {
+	return sf::Vector2f(m_fHandPositionX, m_fHandPositionY);
 }
 
 float C6SNetwork::CServerPlayerUpdate::GetAimAngle() {
@@ -317,14 +317,14 @@ bool C6SNetwork::CServerPlayerUpdate::IsWalking() {
 	return m_bWalking;
 }
 
-C6SPacket C6SNetwork::CServerPlayerUpdate::Create(int iClientID, Vector2f vPosition, Vector2f vHandPosition, float fAimAngle, bool bLeftFacing, bool bWalking) {
+C6SPacket C6SNetwork::CServerPlayerUpdate::Create(int iClientID, sf::Vector2f vPosition, sf::Vector2f vHandPosition, float fAimAngle, bool bLeftFacing, bool bWalking) {
 	C6SPacket packet;
 	packet.SetID(C6SPacket::ID_SERVER_PLAYER_UPDATE);
 	packet << iClientID;
-	packet << vPosition.X;
-	packet << vPosition.Y;
-	packet << vHandPosition.X;
-	packet << vHandPosition.Y;
+	packet << vPosition.x;
+	packet << vPosition.y;
+	packet << vHandPosition.x;
+	packet << vHandPosition.y;
 	packet << fAimAngle;
 	packet << bLeftFacing;
 	packet << bWalking;
@@ -352,8 +352,8 @@ C6SNetwork::CClientPlayerInputEvent::CClientPlayerInputEvent(C6SPacket& packet) 
 	case EVENT_MOUSEPRESS:
 		break;
 	case EVENT_THROW:
-		packet >> m_vThrowVelocity.X;
-		packet >> m_vThrowVelocity.Y;
+		packet >> m_vThrowVelocity.x;
+		packet >> m_vThrowVelocity.y;
 		break;
 	default:
 		return;
@@ -362,10 +362,10 @@ C6SNetwork::CClientPlayerInputEvent::CClientPlayerInputEvent(C6SPacket& packet) 
 	m_bIsValid = true;
 }
  
-Vector2f C6SNetwork::CClientPlayerInputEvent::GetThrowVelocity() {
+sf::Vector2f C6SNetwork::CClientPlayerInputEvent::GetThrowVelocity() {
 	if (IsThrow())
 		return m_vThrowVelocity;
-	return Vector2f(0.0f, 0.0f);
+	return sf::Vector2f(0.0f, 0.0f);
 }
 float C6SNetwork::CClientPlayerInputEvent::GetThrowRotation() {
 	if (IsThrow())
@@ -383,7 +383,7 @@ bool C6SNetwork::CClientPlayerInputEvent::IsThrow() {
 	return m_eType == EVENT_THROW;
 }
 
-C6SPacket C6SNetwork::CClientPlayerInputEvent::Create(int iClientUUID, C6SNetwork::EPlayerEvent eType, Vector2f fThrowVelocity, float fThrowRotation) {
+C6SPacket C6SNetwork::CClientPlayerInputEvent::Create(int iClientUUID, C6SNetwork::EPlayerEvent eType, sf::Vector2f fThrowVelocity, float fThrowRotation) {
 	C6SPacket packet;
 	packet.SetID(C6SPacket::ID_CLIENT_PLAYER_INPUT_EVENT);
 	packet << iClientUUID;
@@ -391,8 +391,8 @@ C6SPacket C6SNetwork::CClientPlayerInputEvent::Create(int iClientUUID, C6SNetwor
 
 	/* Throw event stores velocity */
 	if (eType == EVENT_THROW) {
-		packet << fThrowVelocity.X;
-		packet << fThrowVelocity.Y;
+		packet << fThrowVelocity.x;
+		packet << fThrowVelocity.y;
 		packet << fThrowRotation;
 	}
 
@@ -416,11 +416,11 @@ C6SNetwork::CServerPlayerEvent::CServerPlayerEvent(C6SPacket& packet) {
 	switch (m_eType) { 
 	case EVENT_THROW:
 		/* Throw position */
-		packet >> m_vEventPosition.X;
-		packet >> m_vEventPosition.Y;
+		packet >> m_vEventPosition.x;
+		packet >> m_vEventPosition.y;
 		/* Throw velocity */
-		packet >> m_vEventVelocity.X;
-		packet >> m_vEventVelocity.Y;
+		packet >> m_vEventVelocity.x;
+		packet >> m_vEventVelocity.y;
 		/* Projectile ID */
 		packet >> m_iPickupID;
 		/* Throw rotation */
@@ -428,11 +428,11 @@ C6SNetwork::CServerPlayerEvent::CServerPlayerEvent(C6SPacket& packet) {
 		break;
 	case EVENT_SHOOT_PROJECTILE:
 		/* Shoot position */
-		packet >> m_vEventPosition.X;
-		packet >> m_vEventPosition.Y;
+		packet >> m_vEventPosition.x;
+		packet >> m_vEventPosition.y;
 		/* Shoot velocity */
-		packet >> m_vEventVelocity.X;
-		packet >> m_vEventVelocity.Y;
+		packet >> m_vEventVelocity.x;
+		packet >> m_vEventVelocity.y;
 		/* Projectile ID */
 		packet >> m_iPickupID;
 		break;
@@ -442,21 +442,21 @@ C6SNetwork::CServerPlayerEvent::CServerPlayerEvent(C6SPacket& packet) {
 		break;
 	case EVENT_DAMAGE:
 		/* Damage position */
-		packet >> m_vEventPosition.X;
-		packet >> m_vEventPosition.Y;
+		packet >> m_vEventPosition.x;
+		packet >> m_vEventPosition.y;
 		/* Velocity of damage */
-		packet >> m_vEventVelocity.X; 
-		packet >> m_vEventVelocity.Y;
+		packet >> m_vEventVelocity.x; 
+		packet >> m_vEventVelocity.y;
 		/* Damage amount */
 		packet >> m_iDamage;
 		break;
 	case EVENT_DEATH:
 		/* Death position */
-		packet >> m_vEventPosition.X;
-		packet >> m_vEventPosition.Y;
+		packet >> m_vEventPosition.x;
+		packet >> m_vEventPosition.y;
 		/* Velocity of death blow */
-		packet >> m_vEventVelocity.X;
-		packet >> m_vEventVelocity.Y; 
+		packet >> m_vEventVelocity.x;
+		packet >> m_vEventVelocity.y; 
 		break;
 	case EVENT_DRYFIRE:
 		/* No data for dryfire */
@@ -508,10 +508,10 @@ bool C6SNetwork::CServerPlayerEvent::IsDeathEvent() {
 bool C6SNetwork::CServerPlayerEvent::IsSetHitpointsEvent() {
 	return m_eType == EVENT_DEATH;
 }
-Vector2f C6SNetwork::CServerPlayerEvent::GetEventPosition() {
+sf::Vector2f C6SNetwork::CServerPlayerEvent::GetEventPosition() {
 	return m_vEventPosition;
 }
-Vector2f C6SNetwork::CServerPlayerEvent::GetEventVelocity() {
+sf::Vector2f C6SNetwork::CServerPlayerEvent::GetEventVelocity() {
 	return m_vEventVelocity;
 }
 float C6SNetwork::CServerPlayerEvent::GetThrowRotation() {
@@ -519,28 +519,28 @@ float C6SNetwork::CServerPlayerEvent::GetThrowRotation() {
 }
 
 
-C6SPacket C6SNetwork::CServerPlayerEvent::CreateAsDeathEvent(int iClientID, Vector2f vDamagePosition, Vector2f vDamageVelocity) {
+C6SPacket C6SNetwork::CServerPlayerEvent::CreateAsDeathEvent(int iClientID, sf::Vector2f vDamagePosition, sf::Vector2f vDamageVelocity) {
 	C6SPacket packet;
 	packet.SetID(C6SPacket::ID_SERVER_PLAYER_EVENT);
 	packet << iClientID;
 	packet << (int)(EVENT_DEATH);
-	packet << vDamagePosition.X;
-	packet << vDamagePosition.Y;
-	packet << vDamageVelocity.X;
-	packet << vDamageVelocity.Y;
+	packet << vDamagePosition.x;
+	packet << vDamagePosition.y;
+	packet << vDamageVelocity.x;
+	packet << vDamageVelocity.y;
 
 	return packet;
 }
 
-C6SPacket C6SNetwork::CServerPlayerEvent::CreateAsDamageEvent(int iClientID, Vector2f vDamagePosition, Vector2f vDamageVelocity, int iDamageAmount) {
+C6SPacket C6SNetwork::CServerPlayerEvent::CreateAsDamageEvent(int iClientID, sf::Vector2f vDamagePosition, sf::Vector2f vDamageVelocity, int iDamageAmount) {
 	C6SPacket packet;
 	packet.SetID(C6SPacket::ID_SERVER_PLAYER_EVENT);
 	packet << iClientID;
 	packet << (int)(EVENT_DAMAGE);
-	packet << vDamagePosition.X;
-	packet << vDamagePosition.Y;
-	packet << vDamageVelocity.X;
-	packet << vDamageVelocity.Y;
+	packet << vDamagePosition.x;
+	packet << vDamagePosition.y;
+	packet << vDamageVelocity.x;
+	packet << vDamageVelocity.y;
 	packet << iDamageAmount;
 
 	return packet;
@@ -555,29 +555,29 @@ C6SPacket C6SNetwork::CServerPlayerEvent::CreateAsPickupEvent(int iClientID, int
 
 	return packet;
 }
-C6SPacket C6SNetwork::CServerPlayerEvent::CreateAsThrowEvent(int iClientID, Vector2f fThrowVelocity, Vector2f vThrowPosition, float fThrowRotation) {
+C6SPacket C6SNetwork::CServerPlayerEvent::CreateAsThrowEvent(int iClientID, sf::Vector2f fThrowVelocity, sf::Vector2f vThrowPosition, float fThrowRotation) {
 	C6SPacket packet;
 	packet.SetID(C6SPacket::ID_SERVER_PLAYER_EVENT);
 	packet << iClientID;
 	packet << (int)(EVENT_THROW);
-	packet << vThrowPosition.X;
-	packet << vThrowPosition.Y;
-	packet << fThrowVelocity.X;
-	packet << fThrowVelocity.Y;
+	packet << vThrowPosition.x;
+	packet << vThrowPosition.y;
+	packet << fThrowVelocity.x;
+	packet << fThrowVelocity.y;
 	packet << fThrowRotation;
 
 	return packet;
 }
 
-C6SPacket C6SNetwork::CServerPlayerEvent::CreateAsShootEvent(int iClientID, Vector2f vShootPosition, Vector2f vShootAngle, int iProjectileID) {
+C6SPacket C6SNetwork::CServerPlayerEvent::CreateAsShootEvent(int iClientID, sf::Vector2f vShootPosition, sf::Vector2f vShootAngle, int iProjectileID) {
 	C6SPacket packet;
 	packet.SetID(C6SPacket::ID_SERVER_PLAYER_EVENT);
 	packet << iClientID;
 	packet << (int)(EVENT_SHOOT_PROJECTILE);
-	packet << vShootPosition.X;
-	packet << vShootPosition.Y;
-	packet << vShootAngle.X;
-	packet << vShootAngle.Y;
+	packet << vShootPosition.x;
+	packet << vShootPosition.y;
+	packet << vShootAngle.x;
+	packet << vShootAngle.y;
 	packet << iProjectileID;
 
 	return packet;
@@ -612,8 +612,8 @@ C6SNetwork::CServerEntityCreate::CServerEntityCreate(C6SPacket& packet) {
 
 	packet >> m_iEntityID; /* Client Unique ID */
 	packet >> m_eType; /* Input event type */
-	packet >> m_vEntPosition.X;
-	packet >> m_vEntPosition.Y;
+	packet >> m_vEntPosition.x;
+	packet >> m_vEntPosition.y;
 	packet >> m_fEntAngle;
 	packet >> m_eEntityInstanceID;
 	packet >> m_iClientGiveID;
@@ -621,7 +621,7 @@ C6SNetwork::CServerEntityCreate::CServerEntityCreate(C6SPacket& packet) {
 	m_bIsValid = true;
 }
 
-Vector2f C6SNetwork::CServerEntityCreate::GetCreatePosition() {
+sf::Vector2f C6SNetwork::CServerEntityCreate::GetCreatePosition() {
 	return m_vEntPosition;
 }
 
@@ -641,14 +641,14 @@ int C6SNetwork::CServerEntityCreate::GetClientGiveID() {
 	return m_iClientGiveID;
 }
 
-C6SPacket C6SNetwork::CServerEntityCreate::Create(int iEntID, Vector2f vPosition, float fAngle, int eInstanceID, int eType, int iPickupID) {
+C6SPacket C6SNetwork::CServerEntityCreate::Create(int iEntID, sf::Vector2f vPosition, float fAngle, int eInstanceID, int eType, int iPickupID) {
 	C6SPacket packet;
 	packet.SetID(C6SPacket::ID_SERVER_ENTITY_CREATE);
 
 	packet << iEntID;
 	packet << eType; 
-	packet << vPosition.X;
-	packet << vPosition.Y;
+	packet << vPosition.x;
+	packet << vPosition.y;
 	packet << fAngle;
 	packet << eInstanceID;
 	packet << iPickupID;

@@ -1,8 +1,6 @@
 #ifndef __CINIITEM_H__
 #define __CINIITEM_H__
 
-#include <string>
-
 /*
 	Michael & Christopher De Pasquale
 	Created:	Unknown, notice added 12 December 2016

@@ -32,7 +32,7 @@ protected:
 	bool m_bMoveRight;
 	bool m_bJump;
 	bool m_bInAir;
-	Vector2f m_vVelocity;
+	sf::Vector2f m_vVelocity;
 
 	int m_height;
 	int m_width;
@@ -40,20 +40,20 @@ protected:
 	C6SBaseNetworkedWeapon* m_pWeapon;
 	CPlayerHand m_Hand;
 		
-	Vector2f m_vHandVelocity;
-	Vector2i m_vLastHandPoll;
-	Vector2f m_vDeathPosition;
+	sf::Vector2f m_vHandVelocity;
+	sf::Vector2i m_vLastHandPoll;
+	sf::Vector2f m_vDeathPosition;
 	float m_fLastHandPollTime;
 
 public:
-	Vector2f GetHandPosition();
+	sf::Vector2f GetHandPosition();
 	float GetHandRotation();
 
-	void SetPosition(Vector2f p);
-	void SetPosition(Vector2i p);
+	void SetPosition(sf::Vector2f p);
+	void SetPosition(sf::Vector2i p);
 
 	void Initialize(CWorldPhysics* pPhysics, char* playerSprite, char* handTexture, int handSize,
-		int playerReach, int height, int width, float jumpSpeed, float moveSpeed, Vector2i location, int iNetworkID = 0);
+		int playerReach, int height, int width, float jumpSpeed, float moveSpeed, sf::Vector2i location, int iNetworkID = 0);
 
 	
 	bool IsWeaponEquipped();
@@ -62,8 +62,8 @@ public:
 	int GetWeaponProjectileDamage();
 
 	/* Update */
-	void Update(float fElapsedTime, CGame* pGame, C6SMap* map, CProjectileManager* pProj, CWorldPhysics* pPhysics);
-	void UpdateNetworked(float fElapsedTime, CGame* pGame, C6SMap* map, CProjectileManager* pProj, CWorldPhysics* pPhysics, CEntityManager* pEntMgr);
+	void Update(float fElapsedTime, CGame* pGame, CProjectileManager* pProj, CWorldPhysics* pPhysics);
+	void UpdateNetworked(float fElapsedTime, CGame* pGame, CProjectileManager* pProj, CWorldPhysics* pPhysics, CEntityManager* pEntMgr);
 
 	/* Handle input */
 	void HandleInput(CGame* pGame, CEntityManager* pEntMgr, bool bInputEnabled);
@@ -71,7 +71,7 @@ public:
 	
 	void Draw(CGame* pGame);
 
-	Vector2i HandLocation();
+	sf::Vector2i HandLocation();
 
 	/* Networked death function */
 	void NetworkedOnDeath(CGame* pGame, CEntityManager* pEntMgr);
@@ -81,7 +81,7 @@ public:
 
 	/* Networked weapon functions */
 	bool NetworkedEquipWeapon(C6SBaseNetworkedWeapon* pWeapon, CEntityManager* pEntMgr);
-	bool NetworkedDropWeapon(CEntityManager* pEntMgr, Vector2f vDropPosition, Vector2f vDropVelocity, float fDropRotation);
+	bool NetworkedDropWeapon(CEntityManager* pEntMgr, sf::Vector2f vDropPosition, sf::Vector2f vDropVelocity, float fDropRotation);
 
 	/* */
 	bool NetworkedAttack(CGame* pGame, CEntityManager* pEntMgr, CWorldPhysics* pPhysics);

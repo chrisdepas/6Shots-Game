@@ -24,10 +24,6 @@ USAGE
 	CDebugLogger::Instance()->SetLogFile("LogFile_xyz.log")->
 */
 
-#include <stdio.h>
-#include <stdarg.h>
-#include <stdlib.h>
-#include <string>
 
 class CDebugLogger {
 public:
@@ -60,6 +56,7 @@ private:
 public:
 
 	void Log(char* format, ...);
+	void Log(const std::string& sOutput);
 	
 	/* Set current logging level */
 	CDebugLogger* LogLevel(ELoggingLevel level = LOGLEVEL_DEBUG);
@@ -82,6 +79,12 @@ public:
 	static void LogWarning(char* format, ...);
 	static void LogError(char* format, ...);
 	static void LogFatal(char* format, ...);
+
+	static void Msg(const std::string& sOut, bool bAddNewline=true);
+	static void Info(const std::string& sOut, bool bAddNewline = true);
+	static void Warn(const std::string& sOut, bool bAddNewline = true);
+	static void Error(const std::string& sOut, bool bAddNewline = true);
+	static void Fatal(const std::string& sOut, bool bAddNewline = true);
 
 	/* Log to a specific file without changing current output settings */
 	static void LogErrorFile(char* szFile, char* format, ...);

@@ -10,9 +10,7 @@
 
 #define DEFAULT_SERVER_PORT 55021
 #define VERSION 1
-#include <SFML\Network.hpp>
 #include "CRandom.h"
-#include <string> 
 #include "INetworkListener.h"
 
 #define DEFAULT_MAX_CLIENTS 4
@@ -94,34 +92,34 @@ public:
 	void RemoveNetworkListener(INetworkListener* pListener);
 
 	/* Send client tick to server */
-	void SendHostTick(CGame* pGame, Vector2f vPlayerPos, Vector2f vHandPos, float fHandRotation, bool bFacingLeft, bool bWalking);
+	void SendHostTick(CGame* pGame, sf::Vector2f vPlayerPos, sf::Vector2f vHandPos, float fHandRotation, bool bFacingLeft, bool bWalking);
 
 	/* Create a weapon */
-	void SendWeaponSpawn(CGame* pGame, Vector2f vPos, float fRotation, int entityID, int weaponID);
+	void SendWeaponSpawn(CGame* pGame, sf::Vector2f vPos, float fRotation, int entityID, int weaponID);
 
 	/* Weapon Pickup */
 	void SendClientWeaponPickup(CGame* pGame, int iClientID, int iWeaponEntityID);
 	void SendHostWeaponPickup(CGame* pGame, int iWeaponEntityID);
 
 	/* Weapon Drop */
-	void SendClientWeaponDrop(CGame* pGame, int clientID, Vector2f vPosition, Vector2f vVelocity, float fDropRotation);
-	void SendHostWeaponDrop(CGame* pGame, Vector2f vPosition, Vector2f vVelocity, float fDropRotation);
+	void SendClientWeaponDrop(CGame* pGame, int clientID, sf::Vector2f vPosition, sf::Vector2f vVelocity, float fDropRotation);
+	void SendHostWeaponDrop(CGame* pGame, sf::Vector2f vPosition, sf::Vector2f vVelocity, float fDropRotation);
 
 	/* Weapon Shoot */
-	void SendClientWeaponShoot(CGame* pGame, int clientID, Vector2f vPosition, Vector2f vVelocity, int projectileID);
-	void SendHostWeaponShoot(CGame* pGame, Vector2f vPosition, Vector2f vVelocity, int projectileID);
+	void SendClientWeaponShoot(CGame* pGame, int clientID, sf::Vector2f vPosition, sf::Vector2f vVelocity, int projectileID);
+	void SendHostWeaponShoot(CGame* pGame, sf::Vector2f vPosition, sf::Vector2f vVelocity, int projectileID);
 
 	/* Weapon Dry Fire */
 	void SendClientWeaponDryFire(CGame* pGame, int clientID);
 	void SendHostWeaponDryFire(CGame* pGame);
 
 	/* Player Damage */
-	void SendClientDamage(CGame* pGame, int clientID, Vector2f vPosition, Vector2f vVelocity, int iDamage);
-	void SendHostDamage(CGame* pGame, Vector2f vPosition, Vector2f vVelocity, int iDamage);
+	void SendClientDamage(CGame* pGame, int clientID, sf::Vector2f vPosition, sf::Vector2f vVelocity, int iDamage);
+	void SendHostDamage(CGame* pGame, sf::Vector2f vPosition, sf::Vector2f vVelocity, int iDamage);
 
 	/* Player death */
-	void SendClientDeath(CGame* pGame, int clientID, Vector2f vPosition, Vector2f vVelocity);
-	void SendHostDeath(CGame* pGame, Vector2f vPosition, Vector2f vVelocity);
+	void SendClientDeath(CGame* pGame, int clientID, sf::Vector2f vPosition, sf::Vector2f vVelocity);
+	void SendHostDeath(CGame* pGame, sf::Vector2f vPosition, sf::Vector2f vVelocity);
 
 	/* Player heal */
 	void SendClientSetHitpoints(CGame* pGame, int clientID, int hp);

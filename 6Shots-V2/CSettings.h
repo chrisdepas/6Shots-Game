@@ -1,9 +1,20 @@
 #pragma once
-#include "vector.h"
 #include "CIniReader.h"
 #include "CIniWriter.h"
 
+#include <cereal/cereal.hpp>
+#include <cereal/archives/portable_binary.hpp>
+#include <cereal/archives/xml.hpp>
+#include <cereal/types/vector.hpp>
+#include <cereal/types/common.hpp>
+#include <cereal/types/utility.hpp>
+#include <cereal/types/base_class.hpp>
+#include "CerealTypes.h"
+
 #define SETTINGS_FILE_PATH "./GameSettings.ini"
+
+#define FULLBRIGHT_STRING "FullBright"
+#define DEFAULT_FULLBRIGHT false
 
 #define SHADERS_ENABLED_STRING "ShadersOn"
 #define DEFAULT_SHADERS_ENABLED true
@@ -26,7 +37,7 @@
 
 #define FPS_COUNT_LIMIT_STRING "MaxFPS"
 #define DEFAULT_FPS_COUNT_LIMIT 60
-#define FPS_COUNT_LIMIT_MIN 30 
+#define FPS_COUNT_LIMIT_MIN 30
 #define FPS_COUNT_LIMIT_MAX 100000
 
 #define VSYNC_STRING "VSyncEnabled"
@@ -42,23 +53,23 @@
 #define SOUND_VOLUME_MIN 0.0f
 #define SOUND_VOLUME_MAX 100.0f
 
-class CSettings
-{
-public:
+class CSettings {
 
+public:
 	// Graphics
-	Vector2i m_vScreenSize;
-	bool m_bFullscreen;
-	bool m_bLimitFPS;
-	int m_iFPSCountLimit;
-	bool m_bVSync;
-	bool m_bShadersEnabled;
+	sf::Vector2i m_vScreenSize = sf::Vector2i(DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT);
+	bool m_bFullscreen = DEFAULT_FULLSCREEN;
+	bool m_bLimitFPS = DEFAULT_LIMIT_FPS;
+	int m_iFPSCountLimit = DEFAULT_FPS_COUNT_LIMIT;
+	bool m_bVSync = DEFAULT_VSYNC;
+	bool m_bShadersEnabled = DEFAULT_SHADERS_ENABLED;
+
+	// Audio, Volume range is  0.0 to 100.0
+	float m_fMusicVolume = DEFAULT_MUSIC_VOLUME; 
+	float m_fSoundVolume = DEFAULT_SOUND_VOLUME;
 
 	// Debug
-	bool m_bFullbright;
-	
-	float m_fMusicVolume; /* 0.0 to 100.0 */
-	float m_fSoundVolume; /* 0.0 to 100.0 */
+	bool m_bFullbright = DEFAULT_FULLBRIGHT;
 
 	CSettings();
 	~CSettings();
@@ -72,12 +83,9 @@ public:
 	void SetMusicVolume(float fMusicvol);
 	void SetShadersEnabled(bool bEnable);
 
-
 	bool operator!=(const CSettings& other) {
 		// [VIDEO]
-		if (this->m_vScreenSize.X != other.m_vScreenSize.X)
-			return true;
-		if (this->m_vScreenSize.Y != other.m_vScreenSize.Y)
+		if (this->m_vScreenSize != other.m_vScreenSize)
 			return true;
 		if (this->m_bFullscreen != other.m_bFullscreen)
 			return true;

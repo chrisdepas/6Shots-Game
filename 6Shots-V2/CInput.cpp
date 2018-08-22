@@ -6,6 +6,7 @@ void CInput::LoadDefaultKeys()
 {   
 	/* Menu buttons */
 	m_DefaultMap.insert(std::make_pair(sf::Keyboard::BackSlash, Action_Show_Chat));
+	m_DefaultMap.insert(std::make_pair(sf::Keyboard::F1, Action_Console_Toggle)); 
 	m_DefaultMap.insert(std::make_pair(sf::Keyboard::Escape, Action_Menu_Toggle)); // Escape = Action_Menu_Toggle 
 //	m_DefaultMap.insert(std::make_pair(sf::Keyboard::Return, Action_Menu_Select)); // Return = Action_Menu_Select
 //	m_DefaultMap.insert(std::make_pair(sf::Keyboard::Up, Action_Menu_Up));		   // Up 
@@ -30,9 +31,7 @@ void CInput::LoadDefaultKeys()
 
 //	m_DefaultMap.insert(std::make_pair(sf::Keyboard::F, Action_Fire));			// F = Fire
 }
-CInput::~CInput()
-{
-}
+
 void CInput::Initialise()
 {
 	if (!m_bInitialised) {
@@ -46,51 +45,54 @@ void CInput::FlushInput(CWindowManager* pWindowMgr, bool bClearEventQueue) {
 	while (window->pollEvent(event));
 	if (bClearEventQueue) m_vCursorEvents.clear();
 }
-void CInput::LoadBindings(char* szFileName)
-{
 
-}
-void CInput::SaveBindings(char* szFileName)
-{
+void CInput::LoadBindings(char* szFileName) {
 }
 
-void CInput::InjectMouseMove(int x, int y)
-{ 
-	m_vMousePosition.X = x;
-	m_vMousePosition.Y = y;
+void CInput::SaveBindings(char* szFileName) {
 }
 
-void CInput::LostFocus()
-{
-	  
+void CInput::InjectMouseMove(int x, int y) { 
+	m_vMousePosition = sf::Vector2i(x, y);
 }
-bool CInput::GetNextCursorEvent(CInput::SCursorEvent& cursorEvent)
-{
-	if (m_vCursorEvents.empty())
+
+void CInput::InjectKeyPress(sf::Event::KeyEvent ev) {
+	m_vKeyEvents.push_back(ev);
+}
+
+bool CInput::GetNextCursorEvent(CInput::SCursorEvent& cursorEvent) {
+	if (m_vCursorEvents.empty()) {
 		return false;
+	}
 	cursorEvent = m_vCursorEvents.back();
 	m_vCursorEvents.pop_back();
 	return true;
 }
-
-Vector2i CInput::GetMousePosition()
-{
+bool CInput::GetNextKeyEvent(sf::Event::KeyEvent& cursorEvent) {
+	if (m_vKeyEvents.empty()) {
+		return false;
+	}
+	cursorEvent = m_vKeyEvents.back();
+	m_vKeyEvents.pop_back();
+	return true;
+}
+sf::Vector2i CInput::GetMousePosition() {
 	return m_vMousePosition;
 }
-bool CInput::ActionKeyPressed(EAction Action)
-{
+
+bool CInput::ActionKeyPressed(EAction Action) {
 	std::map< sf::Keyboard::Key, EAction >::iterator it;
 
-	for (it = m_KeyMap.begin(); it != m_KeyMap.end(); it++)
-	{
-		if (it->second == Action)
+	for (it = m_KeyMap.begin(); it != m_KeyMap.end(); it++) {
+		if (it->second == Action) {
 			return sf::Keyboard::isKeyPressed(it->first);
+		}
 	}
 
-	for (it = m_DefaultMap.begin(); it != m_DefaultMap.end(); it++)
-	{
-		if (it->second == Action)
+	for (it = m_DefaultMap.begin(); it != m_DefaultMap.end(); it++) {
+		if (it->second == Action) {
 			return sf::Keyboard::isKeyPressed(it->first);
+		}
 	}
 
 	return false;
@@ -107,57 +109,26 @@ bool CInput::MouseButtonPressed(sf::Mouse::Button button) {
 }
 
 
-void CInput::InjectMousePress(int x, int y, sf::Mouse::Button button) {
-	if (button < sf::Mouse::Left || button > sf::Mouse::ButtonCount) {
+void CInput::InjectMousePress(sf::Event::MouseButtonEvent ev) {
+	if (ev.button < sf::Mouse::Left || ev.button > sf::Mouse::ButtonCount) {
 		CDebugLogger::LogError("Recieved unknown mouse button ID %i, out of expected range [%i, %i)", 
-			button, sf::Mouse::Left, sf::Mouse::ButtonCount);
+			ev.button, sf::Mouse::Left, sf::Mouse::ButtonCount);
 		return;
 	}
 
 	// Change state, and insert Mouse event
-	m_ButtonStates[button] = true;
-	m_vCursorEvents.push_back(SCursorEvent(button, Vector2i(x, y), false));
+	m_ButtonStates[ev.button] = true;
+	m_vCursorEvents.push_back(SCursorEvent(ev, false));
 }
 
-void CInput::InjectMouseRelease(int x, int y, sf::Mouse::Button button) {
-	if (button < sf::Mouse::Left || button > sf::Mouse::ButtonCount) {
+void CInput::InjectMouseRelease(sf::Event::MouseButtonEvent ev) {
+	if (ev.button < sf::Mouse::Left || ev.button > sf::Mouse::ButtonCount) {
 		CDebugLogger::LogError("Recieved unknown mouse button ID %i, out of expected range [%i, %i)",
-			button, sf::Mouse::Left, sf::Mouse::ButtonCount);
+			ev.button, sf::Mouse::Left, sf::Mouse::ButtonCount);
 		return;
 	}
 	
 	// Change state, and insert mouse event 
-	m_ButtonStates[button] = false;
-	m_vCursorEvents.push_back(SCursorEvent(button, Vector2i(x, y), true));
-}
-
-bool CInput::GetChar(char& c, CGame* pGame)
-{
-	sf::Event e;
-	sf::Window* pWindow = pGame->m_WindowManager.GetWindow();
-	if (!pWindow)
-		return false;
-
-	/* loop until key is found or ESC is pressed */
-	while (true)
-	{
-		if (!pWindow->pollEvent(e))
-			continue;
-
-		if (e.type == sf::Event::KeyPressed)
-		{
-			/* check if user pressed ESC to cancel */
-			if (e.key.code == sf::Keyboard::Escape)
-				return false;
-		}
-		else if (e.type == sf::Event::TextEntered)
-		{
-			if (e.text.unicode < 128)
-			{
-				/* Ascii character was entered, return it */
-				c = e.text.unicode;
-				return true;
-			}
-		}
-	}
+	m_ButtonStates[ev.button] = false;
+	m_vCursorEvents.push_back(SCursorEvent(ev, true));
 }

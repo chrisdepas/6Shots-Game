@@ -7,8 +7,7 @@ Unknown date, notice added 12 December 2016
 */
 
 #define C6SNETWORK_VERSION 1
-#include <sfml\Network.hpp>
-#include "Vector.h"
+
 class C6SPacket;
 class C6SNetwork {
 
@@ -215,14 +214,14 @@ public:
 		bool m_bWalking;	// Walking animation 
 	public:
 		CClientPlayerTick(C6SPacket& packet);
-		Vector2f GetPlayerPosition(); 
-		Vector2f GetHandPosition();
+		sf::Vector2f GetPlayerPosition(); 
+		sf::Vector2f GetHandPosition();
 		float GetAimAngle();
 		//bool IsAttackPressed();
 		int GetUUID();
 		bool IsFacingLeft();
 		bool IsWalking();
-		static C6SPacket Create(int iClientUUID, Vector2f vPosition, Vector2f vHandPosition, float fAimAngle, bool bLeftFacing, bool bWalking);
+		static C6SPacket Create(int iClientUUID, sf::Vector2f vPosition, sf::Vector2f vHandPosition, float fAimAngle, bool bLeftFacing, bool bWalking);
 	};
 
 	/* SERVER PLAYER UPDATE
@@ -240,13 +239,13 @@ public:
 		bool m_bWalking;	// Walking animation 
 	public:
 		CServerPlayerUpdate(C6SPacket& packet);
-		Vector2f GetPosition();
-		Vector2f GetHandPosition();
+		sf::Vector2f GetPosition();
+		sf::Vector2f GetHandPosition();
 		float GetAimAngle();
 		int GetID();
 		bool IsFacingLeft();
 		bool IsWalking();
-		static C6SPacket Create(int iClientID, Vector2f vPosition, Vector2f vHandPosition, float fAimAngle, bool bLeftFacing, bool bWalking);
+		static C6SPacket Create(int iClientID, sf::Vector2f vPosition, sf::Vector2f vHandPosition, float fAimAngle, bool bLeftFacing, bool bWalking);
 	};
 
 	/* CLIENT PLAYER INPUT EVENT
@@ -261,16 +260,16 @@ public:
 		int m_eType; // Type of player input event 
 
 		/* Optional throw event parameters */
-		Vector2f m_vThrowVelocity; 
+		sf::Vector2f m_vThrowVelocity; 
 		float m_fThrowRotation;
 	public:
 		CClientPlayerInputEvent(C6SPacket& packet);
 		int GetUUID();
 		bool IsMousePress();
 		bool IsThrow();
-		Vector2f GetThrowVelocity();
+		sf::Vector2f GetThrowVelocity();
 		float GetThrowRotation();
-		static C6SPacket Create(int iClientUUID, C6SNetwork::EPlayerEvent eType, Vector2f fThrowVelocity = Vector2f(0.0f, 0.0f), float fThrowRotation = 0.0f);
+		static C6SPacket Create(int iClientUUID, C6SNetwork::EPlayerEvent eType, sf::Vector2f fThrowVelocity = sf::Vector2f(0.0f, 0.0f), float fThrowRotation = 0.0f);
 	};
 
 	/* SERVER PLAYER EVENT
@@ -280,15 +279,15 @@ public:
 	class CServerPlayerEvent: public CBasePacket {
 		int m_iClientID; // Non-secret player identifier
 		int m_eType;
-		Vector2f m_vEventVelocity; /* Shoot / throw velocity */
-		Vector2f m_vEventPosition; /* Shoot / throw position */
+		sf::Vector2f m_vEventVelocity; /* Shoot / throw velocity */
+		sf::Vector2f m_vEventPosition; /* Shoot / throw position */
 		int m_iDamage;
 		int m_iPickupID; 
 		float m_fThrowRotation;
 	public:
 		CServerPlayerEvent(C6SPacket& packet);
-		Vector2f GetPosition();
-		Vector2f GetHandPosition();
+		sf::Vector2f GetPosition();
+		sf::Vector2f GetHandPosition();
 		float GetThrowRotation();
 
 		int GetDamageAmount();
@@ -303,16 +302,16 @@ public:
 		bool IsDamageEvent();
 		bool IsDeathEvent();
 		bool IsSetHitpointsEvent();
-		Vector2f GetEventVelocity();
-		Vector2f GetEventPosition(); 
-		static C6SPacket CreateAsDeathEvent(int iClientID, Vector2f vDamagePosition, Vector2f vDamageVelocity);
-		static C6SPacket CreateAsDamageEvent(int iClientID, Vector2f vDamagePosition, Vector2f vDamageVelocity, int iDamageAmount);
+		sf::Vector2f GetEventVelocity();
+		sf::Vector2f GetEventPosition(); 
+		static C6SPacket CreateAsDeathEvent(int iClientID, sf::Vector2f vDamagePosition, sf::Vector2f vDamageVelocity);
+		static C6SPacket CreateAsDamageEvent(int iClientID, sf::Vector2f vDamagePosition, sf::Vector2f vDamageVelocity, int iDamageAmount);
 		static C6SPacket CreateAsPickupEvent(int iClientID, int iPickupID);
-		static C6SPacket CreateAsThrowEvent(int iClientID, Vector2f vThrowVelocity, Vector2f vThrowPosition, float fThrowRotation);
-		static C6SPacket CreateAsShootEvent(int iClientID, Vector2f vShootPosition, Vector2f vShootVelocity, int iProjectileID);
+		static C6SPacket CreateAsThrowEvent(int iClientID, sf::Vector2f vThrowVelocity, sf::Vector2f vThrowPosition, float fThrowRotation);
+		static C6SPacket CreateAsShootEvent(int iClientID, sf::Vector2f vShootPosition, sf::Vector2f vShootVelocity, int iProjectileID);
 		static C6SPacket CreateAsDryFireEvent(int iClientID);
 		static C6SPacket CreateAsHitpointsChange(int iClientID, int iHp);
-		static C6SPacket CreateAsTeleport(int iClientID, Vector2f vPosition);
+		static C6SPacket CreateAsTeleport(int iClientID, sf::Vector2f vPosition);
 	};
 
 	/* SERVER ENTITY CREATE
@@ -322,19 +321,19 @@ public:
 	class CServerEntityCreate : public CBasePacket {
 		int m_iEntityID;		/* ID of new entity on server */
 		int m_eType;			/* Type of new entity */
-		Vector2f m_vEntPosition;/* create position */
+		sf::Vector2f m_vEntPosition;/* create position */
 		float m_fEntAngle;		/* Create rotation */
 		int m_eEntityInstanceID;/* Specific instance of entity, e.g. if eType is WEAPON, eInstanceID might be KNIFE */
 		int m_iClientGiveID;	/* Non-secret ID of client that entity has been given to, if entity can be held */
 	public:
 		CServerEntityCreate(C6SPacket& packet);
-		Vector2f GetCreatePosition();
+		sf::Vector2f GetCreatePosition();
 		float GetCreateAngle();
 		int GetEntityID();
 		int GetEntityType();
 		int GetEntityInstanceID();
 		int GetClientGiveID();
-		static C6SPacket Create(int iEntID, Vector2f vPosition, float fAngle, int eInstanceID, int eType = 0, int iPickupID = 0);
+		static C6SPacket Create(int iEntID, sf::Vector2f vPosition, float fAngle, int eInstanceID, int eType = 0, int iPickupID = 0);
 	};
 
 	/* CLIENT CONSOLE COMMAND

@@ -3,7 +3,6 @@
 
 #include "CWorldPhysics.h"
 #include "CEntityPhysics.h"
-#include <vector>
 class CGame;
 
 class CSpentCasingEffect {
@@ -12,8 +11,8 @@ class CSpentCasingEffect {
 	bool m_bDestroyed;
 	sf::Texture m_Texture;
 	CEntityPhysics m_Physics;
-	Vector2f m_vLocation;
-	Vector2i m_vSize;
+	sf::Vector2f m_vLocation;
+	sf::Vector2i m_vSize;
 	float m_fRotation;
 	float m_fDrawRotation;
 
@@ -23,8 +22,8 @@ class CSpentCasingEffect {
 	const float FADE_START = 1.0f;
 
 	/* Initialise physics - use this in overloaded init */
-	void InitPhysics(CWorldPhysics* pWorldPhysics, Vector2i physicsPosition, 
-		Vector2f physicsVelocity, float fRotation, float fAngularRotation, Vector2i vSize); 
+	void InitPhysics(CWorldPhysics* pWorldPhysics, sf::Vector2i physicsPosition, 
+		sf::Vector2f physicsVelocity, float fRotation, float fAngularRotation, sf::Vector2i vSize);
 public:
 	CSpentCasingEffect() {
 		m_fLifeTime = CASING_LIFETIME;
@@ -47,8 +46,8 @@ public:
 	}
 
 	/*  */
-	void Init(CWorldPhysics* pPhysics, char* szTexture, Vector2i vSize, Vector2i vPosition, 
-		Vector2f vVelocity, float fRotation, float fAngularRotation);
+	void Init(CWorldPhysics* pPhysics, char* szTexture, sf::Vector2i vSize, sf::Vector2i vPosition,
+		sf::Vector2f vVelocity, float fRotation, float fAngularRotation);
 
 	/* Update physics, destroys physics when time is up */
 	void Update(float fTimeDelta, CWorldPhysics* pWorldPhysics);

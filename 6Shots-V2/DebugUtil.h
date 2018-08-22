@@ -2,7 +2,6 @@
 #define __DEBUGUTIL_H__
 
 #include "CDebugLogger.h"
-#include <stdlib.h> 
 
 /*	
 	Christopher De Pasquale

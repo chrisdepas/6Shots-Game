@@ -7,10 +7,9 @@
 
 */
 
-#include "Vector.h"
-#include <Box2D\Box2D.h>
+
 class CWorldPhysics;
-#include <SFML\Graphics.hpp>
+
 
 class CEntityPhysics {
 protected:
@@ -35,17 +34,18 @@ public:
 	CEntityPhysics();
 
 	/* Get position of physics object */
-	Vector2f GetPosition();
+	sf::Vector2f GetPosition();
 
 	/* Get rotation of physics object */
-	float GetRotation();
+	float GetRotationDegree();
+	float GetRotationRadian();
 
 	/* Check categories of all fixtures of physics object */
 	bool IsCategory(EEntityCategory category);
 
 	/* Move physics object */
-	void SetPosition(Vector2i postion);
-	void SetPosition(Vector2f postion);
+	void SetPosition(sf::Vector2i postion);
+	void SetPosition(sf::Vector2f postion);
 	
 	/* Rotate */
 	void SetRotation(float rotation);
@@ -55,7 +55,7 @@ public:
 	/* Modify velocity */
 	void SetHorizontalVelocity(float vel);
 	void SetVerticalVelocity(float vel);
-	void SetVelocity(Vector2f vel);
+	void SetVelocity(sf::Vector2f vel);
 
 	/* Init physics as box */
 	void InitPhysics(CWorldPhysics* pWorldPhysics, int initPosX, int initPosY, int width, int height,

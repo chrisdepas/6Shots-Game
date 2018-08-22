@@ -22,7 +22,7 @@ public:
 	bool IsCurrentState(CGameState* pState);
 
 	void Draw(CGame* pGame);
-	void Update(CGame* pGame);
+	void Update(CGame* pGame, float fFrameTime);
 	void HandleInput(CGame* pGame);
 };
 

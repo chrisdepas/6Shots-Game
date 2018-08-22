@@ -8,9 +8,8 @@
 
 */
 
-#include "Vector.h"
+
 #include "CEntityPhysics.h"
-#include <Box2D\Box2D.h>
 
 class CWorldPhysics;
 

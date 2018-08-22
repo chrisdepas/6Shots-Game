@@ -60,12 +60,12 @@ void CServer::RemoveNetworkListener(INetworkListener* pListener) {
 	SetNetworkListener(0);
 }
 
-void CServer::SendHostTick(CGame* pGame, Vector2f vPlayerPos, Vector2f vHandPos, float fHandRotation, bool bFacingLeft, bool bWalking) {
+void CServer::SendHostTick(CGame* pGame, sf::Vector2f vPlayerPos, sf::Vector2f vHandPos, float fHandRotation, bool bFacingLeft, bool bWalking) {
 	C6SPacket tick = C6SNetwork::CServerPlayerUpdate::Create(this->m_iHostID, vPlayerPos, vHandPos, fHandRotation, bFacingLeft, bWalking);
 	BroadcastPacket(pGame, tick);
 } 
 
-void CServer::SendWeaponSpawn(CGame* pGame, Vector2f vPos, float fRotation, int entityID, int weaponID) {
+void CServer::SendWeaponSpawn(CGame* pGame, sf::Vector2f vPos, float fRotation, int entityID, int weaponID) {
 	C6SPacket spwn = C6SNetwork::CServerEntityCreate::Create(entityID, vPos, fRotation, weaponID);
 	BroadcastPacket(pGame, spwn);
 }
@@ -78,19 +78,19 @@ void CServer::SendHostWeaponPickup(CGame* pGame, int iWeaponEntityID) {
 	SendClientWeaponPickup(pGame, this->m_iHostID, iWeaponEntityID);
 }
 
-void CServer::SendClientWeaponDrop(CGame* pGame, int clientID, Vector2f vPosition, Vector2f vVelocity, float fDropRotation) {
+void CServer::SendClientWeaponDrop(CGame* pGame, int clientID, sf::Vector2f vPosition, sf::Vector2f vVelocity, float fDropRotation) {
 	C6SPacket drop = C6SNetwork::CServerPlayerEvent::CreateAsThrowEvent(clientID, vVelocity, vPosition, fDropRotation);
 	BroadcastPacket(pGame, drop);
 }
-void CServer::SendHostWeaponDrop(CGame* pGame, Vector2f vPosition, Vector2f vVelocity, float fDropRotation) {
+void CServer::SendHostWeaponDrop(CGame* pGame, sf::Vector2f vPosition, sf::Vector2f vVelocity, float fDropRotation) {
 	SendClientWeaponDrop(pGame, this->m_iHostID, vPosition, vVelocity, fDropRotation);
 }
 
-void CServer::SendClientWeaponShoot(CGame* pGame, int clientID, Vector2f vPosition, Vector2f vVelocity, int projectileID) {
+void CServer::SendClientWeaponShoot(CGame* pGame, int clientID, sf::Vector2f vPosition, sf::Vector2f vVelocity, int projectileID) {
 	C6SPacket shoot = C6SNetwork::CServerPlayerEvent::CreateAsShootEvent(clientID, vPosition, vVelocity, projectileID);
 	BroadcastPacket(pGame, shoot); 
 }
-void CServer::SendHostWeaponShoot(CGame* pGame, Vector2f vPosition, Vector2f vVelocity, int projectileID) {
+void CServer::SendHostWeaponShoot(CGame* pGame, sf::Vector2f vPosition, sf::Vector2f vVelocity, int projectileID) {
 	SendClientWeaponShoot(pGame, this->m_iHostID, vPosition, vVelocity, projectileID);
 }
 
@@ -103,19 +103,19 @@ void CServer::SendHostWeaponDryFire(CGame* pGame) {
 	SendClientWeaponDryFire(pGame, this->m_iHostID);
 }
  
-void CServer::SendClientDamage(CGame* pGame, int clientID, Vector2f vPosition, Vector2f vVelocity, int iDamage) {
+void CServer::SendClientDamage(CGame* pGame, int clientID,  sf::Vector2f vPosition, sf::Vector2f vVelocity, int iDamage) {
 	C6SPacket damage = C6SNetwork::CServerPlayerEvent::CreateAsDamageEvent(clientID, vPosition, vVelocity, iDamage);
 	BroadcastPacket(pGame, damage);
 }
-void CServer::SendHostDamage(CGame* pGame, Vector2f vPosition, Vector2f vVelocity, int iDamage) {
+void CServer::SendHostDamage(CGame* pGame, sf::Vector2f vPosition, sf::Vector2f vVelocity, int iDamage) {
 	SendClientDamage(pGame, this->m_iHostID, vPosition, vVelocity, iDamage);
 }
 
-void CServer::SendClientDeath(CGame* pGame, int clientID, Vector2f vPosition, Vector2f vVelocity) {
+void CServer::SendClientDeath(CGame* pGame, int clientID, sf::Vector2f vPosition, sf::Vector2f vVelocity) {
 	C6SPacket death = C6SNetwork::CServerPlayerEvent::CreateAsDeathEvent(clientID, vPosition, vVelocity);
 	BroadcastPacket(pGame, death);
 }
-void CServer::SendHostDeath(CGame* pGame, Vector2f vPosition, Vector2f vVelocity) {
+void CServer::SendHostDeath(CGame* pGame, sf::Vector2f vPosition, sf::Vector2f vVelocity) {
 	SendClientDeath(pGame, this->m_iHostID, vPosition, vVelocity);
 }
 

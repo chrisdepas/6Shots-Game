@@ -28,14 +28,14 @@ void CProjectileManager::Update(CWorldPhysics* pPhysics, bool bRecordCollisions)
 	m_ProjectileEventsInternal.clear();
 }
 
-int CProjectileManager::AddProjectile(CWorldPhysics* pPhysics, bool bGravity, int iDamage, int iRange, CBaseEntity* pOwner, Vector2f vLocation, Vector2f vVelocity) {
+int CProjectileManager::AddProjectile(CWorldPhysics* pPhysics, bool bGravity, int iDamage, int iRange, CBaseEntity* pOwner, sf::Vector2f vLocation, sf::Vector2f vVelocity) {
 	CProjectile projectile(iDamage, iRange, ++m_iLastProjectileID, pOwner, vLocation, vVelocity);
 	projectile.Init(pPhysics, vLocation, vVelocity);
 	m_Projectiles.push_back(projectile);
 	return m_iLastProjectileID;
 }
 
-void CProjectileManager::AddProjectileWithID(CWorldPhysics* pPhysics, bool bGravity, int iDamage, int iRange, CBaseEntity* pOwner, Vector2f vLocation, Vector2f vVelocity, int projectileID) {
+void CProjectileManager::AddProjectileWithID(CWorldPhysics* pPhysics, bool bGravity, int iDamage, int iRange, CBaseEntity* pOwner, sf::Vector2f vLocation, sf::Vector2f vVelocity, int projectileID) {
 	CProjectile projectile(iDamage, iRange, projectileID, pOwner, vLocation, vVelocity);
 	projectile.Init(pPhysics, vLocation, vVelocity);
 	m_Projectiles.push_back(projectile);
@@ -128,11 +128,11 @@ void CProjectileManager::BeginContact(b2Contact* contact) {
 			}
 
 			/* get position */
-			collision.vPosition.X = CWorldPhysics::GetMeterToPixelFactor() * pBody->GetPosition().x;
-			collision.vPosition.Y = CWorldPhysics::GetMeterToPixelFactor() * pBody->GetPosition().y;
+			collision.vPosition.x = CWorldPhysics::GetMeterToPixelFactor() * pBody->GetPosition().x;
+			collision.vPosition.y = CWorldPhysics::GetMeterToPixelFactor() * pBody->GetPosition().y;
 			/* get velocity */
-			collision.vVelocity.X = CWorldPhysics::GetMeterToPixelFactor() * pBody->GetLinearVelocity().x;
-			collision.vVelocity.Y = CWorldPhysics::GetMeterToPixelFactor() * pBody->GetLinearVelocity().y;
+			collision.vVelocity.x = CWorldPhysics::GetMeterToPixelFactor() * pBody->GetLinearVelocity().x;
+			collision.vVelocity.y = CWorldPhysics::GetMeterToPixelFactor() * pBody->GetLinearVelocity().y;
 
 			m_ProjectileEventsInternal.push_back(collision);
 		}

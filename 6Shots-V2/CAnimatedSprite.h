@@ -4,10 +4,8 @@
 /* Handler for Darkfunction exported sprites 
 http://darkfunction.com/editor/documentation
 */
-#include <SFML\Graphics.hpp>
-#include "Vector.h"
+
 #include "CGame.h"
-#include <rapidxml.hpp>
 
 class CAnimatedSprite {
 	/* Time for each frame in an animation */
@@ -17,8 +15,8 @@ class CAnimatedSprite {
 
 	public:
 		std::string m_sSpriteName;
-		Vector2i m_vPosition;
-		Vector2i m_vSize;
+		sf::Vector2i m_vPosition;
+		sf::Vector2i m_vSize;
 	};
 
 	class CAnimSprite {
@@ -26,7 +24,7 @@ class CAnimatedSprite {
 	public:
 		CSpriteImg* m_pSpriteImg;
 		std::string m_sSpriteName;
-		Vector2i m_vPosition;
+		sf::Vector2i m_vPosition;
 		int m_iZ;
 		CAnimSprite() {
 			m_pSpriteImg = 0;
@@ -41,7 +39,8 @@ class CAnimatedSprite {
 		int m_iDelayMult;
 		float m_fStartTime = 0.0f; // Start time in animation timescale
 		float m_fEndTime = 0.0f; // End time in animation timescale
-		void Draw(CGame* pGame, Vector2i pos, bool bMirror, sf::Texture* spriteSheet, std::vector<CSpriteImg>& sprites);
+		void Draw(CGame* pGame, sf::Vector2i pos, bool bMirror, sf::Texture* spriteSheet, std::vector<CSpriteImg>& sprites);
+		void Draw(CGame* pGame, sf::Shader& shader, sf::Vector2i pos, bool bMirror, sf::Texture* spriteSheet, std::vector<CSpriteImg>& sprites);
 	};
 
 	class CAnimation {
@@ -55,7 +54,8 @@ class CAnimatedSprite {
 		float m_fMaxTime; // Total time of each frame added up, end time for animation
 		int m_iCurFrame = 0; // Current frame index
 
-		void Draw(CGame* pGame, Vector2i pos, sf::Texture* spriteSheet, bool bMirror, std::vector<CSpriteImg>& sprites);
+		void Draw(CGame* pGame, sf::Vector2i pos, sf::Texture* spriteSheet, bool bMirror, std::vector<CSpriteImg>& sprites);
+		void Draw(CGame* pGame, sf::Shader& shader, sf::Vector2i pos, sf::Texture* spriteSheet, bool bMirror, std::vector<CSpriteImg>& sprites);
 		void Update(float fDelta, bool bMirror);
 
 		// Converts loaded frame data into playable animation
@@ -84,6 +84,6 @@ public:
 	void Update(float fTime, bool bMirror);
 
 	/* Draw animated sprite */
-	void Draw(CGame* pGame, Vector2i pos, bool bMirror);
+	void Draw(CGame* pGame, sf::Vector2i pos, bool bMirror);
 };
 #endif

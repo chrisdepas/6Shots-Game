@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "CSoundItem.h"
 #include "CDebugLogger.h"
+
 CSoundItem::CSoundItem(char* szName)
 {
 	m_szSoundName = szName;

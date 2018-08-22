@@ -12,52 +12,38 @@ Sometime in 2016
 #include "CGlobal.h"
 #include "CProjectileManager.h"
 #include "CEntityManager.h"
+
 class C6SMapMakerState : public CGameState {
 	struct STilesetTile {
 		int tileindex;
 		sf::Texture texture;
 	};
 
-	/* Arbitrary with and height limits */
-	static const int MapMaxWidth = 65536;
-	static const int MapMaxHeight = 65536;
+	C6SDevMap m_Map;
 
-	/* Default map grid size */
-	static const int MapDefaultGridSize = 32; 
-	static const int MapDefaultWidth = 1024; /* Pixels */
-	static const int MapDefaultHeight = 1024; /* Pixels */
-
-	C6SMap m_Map;
-	
 	/* Input state */
-	Vector2f m_vLookPosition;
+	sf::Vector2f m_vLookPosition;
 	bool m_bMovingLeft;
 	bool m_bMovingRight;
 	bool m_bMovingUp;
 	bool m_bMovingDown;
-	Vector2i m_vLastProcessedMousePosition = Vector2i(-1, -1);
+	sf::Vector2i m_vLastProcessedMousePosition = sf::Vector2i(-1, -1);
 
 	/* GUI data */
 	bool m_bGUIEnabled;
 	tgui::Gui* m_pGUI;
 
-	/* dev drawing options */
-	bool m_bBoundingBox;
-	bool m_bGrid;
-	bool m_bTileType;
-
 	/* Tileset */
-	int m_iTileTabOffset;
-	std::vector<STilesetTile> m_vTileset;
+	int m_iTileTabOffset = 0;
 
 	/* Loaded background data */
-	char* m_szStaticBackground;
-	char* m_szDynamicBackground1;
-	float m_fDynamicBackground1MoveScale;
+	std::string m_sStaticBackground = "";
+	std::string m_sDynamicBackground1 = "";
+	float m_fDynamicBackground1MoveScale = 0.0f;
 
 	/* If a tile type is being placed */
 	bool m_bPlacingTileType;
-	C6SMap::SMapTile::ETileType m_ePlacingTileType;
+	SMapTile::EMapTileType m_ePlacingTileType;
 
 	/* If a tile is being placed */
 	bool m_bPlacingTile;
@@ -65,43 +51,70 @@ class C6SMapMakerState : public CGameState {
 
 	/* Placing as 'sticker' (Any size, free placement) */
 	bool m_bStickerPlacingMode;
-	Vector2i m_vStickerPlacingSize;
+	sf::Vector2i m_vStickerPlacingSize;
 	bool m_bStickerOnTop; 
 
+	const sf::Vector2i MENU_SIZE = sf::Vector2i(400, 500);
+	const tgui::Layout2d CHECKBOX_SIZE = tgui::Layout2d(20.0f, 20.0f);
+	const int TEXT_SIZE = 24;
+	const tgui::Layout VERTICAL_PADDING = tgui::Layout(2.0f);
+	const sf::Color SLIDER_TEXT_COLOR = sf::Color::White;
+	const sf::Color LABEL_COLOR = sf::Color::White;
+	const tgui::Layout2d SLIDER_SIZE = tgui::Layout2d(150.0f, (const float)TEXT_SIZE);
+	const tgui::Layout2d BUTTON_SIZE = tgui::Layout2d(150.0f, 26.0f);
+	const tgui::Layout2d SEPERATOR_SPACING = tgui::Layout2d(0.0f, 20.0f);
+	const sf::Vector2f TILETYPES_BTN_SET_SCALE = sf::Vector2f(0.25f, 0.9f);
+	const sf::Vector2f LOADSIZE_MAP_BTN_SET_SCALE = sf::Vector2f(0.33f, 0.95f);
+
+	const std::string CHK_BOUNDINGBOX_ID = "CheckBoundingBox";
+	const std::string CHK_GRID_ID = "CheckGrid";
+	const std::string CHK_TILE_TYPE_ID = "CheckTileType";
+	const std::string CHK_TILES_ID = "CheckTiles";
+	const std::string CHK_BTN_EXIT_ID = "BtnExitMenu";
+	const std::string SLD_GRIDSIZE_ID = "SldGridsize";
+	const std::string SLD_GRIDSIZE_LABEL_ID = "SldLblGridsize";
+
 	/* Load a tileset file (.6ts), should be a list of paths to tiles, 1 per line */
-	void C6SMapMakerState::LoadTileset(char* szTilset, CGame* pGame);
+	void LoadTileset(char* szTilset, CGame* pGame);
 
 	/* Helper - Place current tileset texture at position */
-	void C6SMapMakerState::PlaceTileTexture(Vector2i vPosition);
+	void PlaceTileTexture(sf::Vector2i vPosition);
+		
+	/* Helper - Get checkbox value */
+	bool GetCheckboxValue(const char* szID);
+
 
 	/* GUI Callback functions */
-	void C6SMapMakerState::TilePressed(int index, CGame* pGame);
-	void C6SMapMakerState::GUIChecked();
-	void C6SMapMakerState::BoundingBoxChecked();
-	void C6SMapMakerState::GridChecked();
-	void C6SMapMakerState::TileTypeChecked();
-	void C6SMapMakerState::LoadStaticBackground();
-	void C6SMapMakerState::LoadDynamicBackground1();
-	void C6SMapMakerState::ResizePressed();
-	void C6SMapMakerState::LoadTilesetPressed(CGame* pGame);
-	void C6SMapMakerState::ExportMap(CGame* pGame);
-	void C6SMapMakerState::LoadMap(CGame* pGame);
-	void C6SMapMakerState::HideMenu();
-	void C6SMapMakerState::ShowMenu();
-	void C6SMapMakerState::BeginTileTypePlacement(CGame* pGame, int eTileType);
-	void C6SMapMakerState::ExitToMenuPressed(CGame* pGame);
+	void TilePressed(int index, CGame* pGame);
+	void GUIChecked();
+	void BoundingBoxChecked();
+	void GridChecked();
+	void TileTypeChecked();
+	void LoadStaticBackground();
+	void LoadDynamicBackground1();
+	void GridsizeChanged();
+	void ResizePressed();
+	void LoadTilesetPressed(CGame* pGame);
+	void ExportMap(CGame* pGame);
+	void PublishMap(CGame* pGame);
+	void LoadMap(CGame* pGame);
+	void HideMenu();
+	void ShowMenu();
+	void BeginTileTypePlacement(CGame* pGame, int eTileType);
+	void EndTileTypePlacement(CGame* pGame);
+	void ExitToMenuPressed(CGame* pGame);
 
 public:
 
-	void C6SMapMakerState::Init(CGame* pGame);
-	void C6SMapMakerState::Cleanup(CGame* pGame);
+	void Init(CGame* pGame);
+	void Cleanup(CGame* pGame);
 
-	void C6SMapMakerState::Draw(CGame* pGame);
-	void C6SMapMakerState::Update(CGame* pGame);
-	void C6SMapMakerState::HandleInput(CGame* pGame);
+	void Draw(CGame* pGame);
+	void Update(CGame* pGame, float fFrameTime);
+	void HandleInput(CGame* pGame);
 
-	void C6SMapMakerState::PauseState();
-	void C6SMapMakerState::ResumeState();
+	void PauseState();
+	void ResumeState();
 
 	static C6SMapMakerState* Instance()
 	{

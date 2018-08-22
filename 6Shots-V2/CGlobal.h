@@ -1,7 +1,11 @@
 #ifndef __CGLOBAL_H__
 #define __CGLOBAL_H__
+/*
+	Chris De Pasquale
+	Created		Sometime in 2016
+	Last Edit	16/05/2018
 
-// global game settings and shit here like gravity
+*/
 class CGlobal {
 	
 	float m_fGravity;

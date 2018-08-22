@@ -4,7 +4,7 @@
 #include "C6SBaseNetworkedWeapon.h"
 #include "CBaseProjectileWeapon.h"
 
-void C6SNetworkedPlayer::Initialize(int iClientID, CWorldPhysics* pPhysics, char* playerSprite, char* handTexture, int handSize, int height, int width, Vector2i location) {
+void C6SNetworkedPlayer::Initialize(int iClientID, CWorldPhysics* pPhysics, char* playerSprite, char* handTexture, int handSize, int height, int width, sf::Vector2i location) {
 	// Physics
 	m_PlayerPhysics.InitPhysics(pPhysics, 0, 0, width, height - 6, true, iClientID);
 
@@ -16,30 +16,27 @@ void C6SNetworkedPlayer::Initialize(int iClientID, CWorldPhysics* pPhysics, char
 
 	// Player
 	m_bAffectedByGravity = true;
-	m_vLocation = Vector2f((float)location.X, (float)location.Y);
+	m_vLocation = sf::Vector2f(location);
 	//m_TestTexture.loadFromFile("./Assets/NetworkPlayerTest.png");
 	if (!m_PlayerSprite.Load(playerSprite)) {
 		CDebugLogger::LogFatal("Fatal Error - Unable to load player sprite from %s\n", playerSprite);
 	}
 	m_PlayerSprite.SetAnimation("idle");
 	m_bWalking = false;
-	m_vSize.X = width;
-	m_vSize.Y = height;
+	m_vSize = sf::Vector2i(width, height);
 
 	// Hand
-	Vector2i playerCentre = location;
-	playerCentre.Y -= height / 2; 
+	sf::Vector2i playerCentre = location - sf::Vector2i(0, height / 2);
 	m_Hand.Init(handTexture, handSize, 1000, playerCentre);
 }
 
-void C6SNetworkedPlayer::NetworkUpdate(Vector2f vLocation, Vector2f vHandlocation, float fHandRotation, bool bLeftFacing, bool bWalking) {
+void C6SNetworkedPlayer::NetworkUpdate(sf::Vector2f vLocation, sf::Vector2f vHandlocation, float fHandRotation, bool bLeftFacing, bool bWalking) {
 	/* Update player position */
 	m_vLocation = vLocation;
-	Vector2i playerCentre((int)m_vLocation.X, (int)(m_vLocation.Y - (float)m_vSize.Y / 2.0f));
+	sf::Vector2i playerCentre(m_vLocation - sf::Vector2f(0.0f, (m_vSize.y / 2.0f)));
 
 	/* Update physics */
-	Vector2f vPhysicsPos = Vector2f(vLocation.X, vLocation.Y - m_vSize.Y / 2.0f);
-	m_PlayerPhysics.SetPosition(vPhysicsPos);
+	m_PlayerPhysics.SetPosition(sf::Vector2f(playerCentre));
 
 	/* Update animation */
 	if (bWalking) {
@@ -60,17 +57,17 @@ void C6SNetworkedPlayer::NetworkUpdate(Vector2f vLocation, Vector2f vHandlocatio
 
 	/* Update player hand */
 	m_Hand.UpdatePosition(vHandlocation, fHandRotation);
-	m_Hand.SetBaseFlag(FL_FACING_LEFT, (vHandlocation.X < playerCentre.X) );
+	m_Hand.SetBaseFlag(FL_FACING_LEFT, (vHandlocation.x < playerCentre.x) );
 
 	/* Update weapon */
 	if (m_pHeldWeapon != NULL) {
 		m_pHeldWeapon->SetPosition(vHandlocation);
 		m_pHeldWeapon->SetTrueRotation(m_Hand.GetTrueRotation());
-		m_pHeldWeapon->SetBaseFlag(FL_FACING_LEFT, (vHandlocation.X < playerCentre.X)); 
+		m_pHeldWeapon->SetBaseFlag(FL_FACING_LEFT, (vHandlocation.x < playerCentre.x)); 
 	}
 }
 
-void C6SNetworkedPlayer::Update(float fElapsedTime, CGame* pGame, C6SMap* map, CProjectileManager* pProj, CWorldPhysics* pPhysics) {
+void C6SNetworkedPlayer::Update(float fElapsedTime, CGame* pGame, CProjectileManager* pProj, CWorldPhysics* pPhysics) {
 	m_PlayerSprite.Update(fElapsedTime, !GetBaseFlag(FL_FACING_LEFT));
 
 	//Vector2i c((int)m_vLocation.X, (int)(m_vLocation.Y - (float)m_vSize.Y / 2.0f));
@@ -79,11 +76,11 @@ void C6SNetworkedPlayer::Update(float fElapsedTime, CGame* pGame, C6SMap* map, C
 //	m_fTrueRotation = atan2f((float)ray.X, (float)ray.Y);
 }
 void C6SNetworkedPlayer::Draw(CGame* pGame) {
-	Vector2i c((int)m_vLocation.X, (int)(m_vLocation.Y - (float)m_vSize.Y / 2.0f));
+	sf::Vector2i centre(m_vLocation - sf::Vector2f(0.0f, m_vSize.y / 2.0f));
 	
 //	pGame->m_Drawing.DrawSpriteCentred(pGame->GetWindowMgr(), c, m_vSize.X, m_vSize.Y, &m_TestTexture);
 
-	m_PlayerSprite.Draw(pGame, c, !GetBaseFlag(FL_FACING_LEFT));
+	m_PlayerSprite.Draw(pGame, centre, !GetBaseFlag(FL_FACING_LEFT));
 
 	m_Hand.Draw(pGame, 0.0f);
 	if (m_pHeldWeapon != NULL) {
@@ -92,7 +89,7 @@ void C6SNetworkedPlayer::Draw(CGame* pGame) {
 }
 
 void C6SNetworkedPlayer::NetworkedOnDeath(CGame* pGame) {
-	m_PlayerPhysics.SetPosition(Vector2f(-1000.0f, -1000.0f));
+	m_PlayerPhysics.SetPosition(sf::Vector2f(-1000.0f, -1000.0f));
 	m_PlayerPhysics.DisablePhysics();
 }
 void C6SNetworkedPlayer::NetworkedRespawn(CGame* pGame) {
@@ -110,7 +107,7 @@ bool C6SNetworkedPlayer::NetworkedPickupWeapon(C6SBaseNetworkedWeapon* pWeapon, 
 	return false;
 }
 
-bool C6SNetworkedPlayer::NetworkedDropWeapon(CEntityManager* pEntMgr, Vector2f vDropVelocity, Vector2f vDropPosition) {
+bool C6SNetworkedPlayer::NetworkedDropWeapon(CEntityManager* pEntMgr, sf::Vector2f vDropVelocity, sf::Vector2f vDropPosition) {
 	if (m_pHeldWeapon != NULL) {
 		pEntMgr->AddWeapon(m_pHeldWeapon);
 		m_pHeldWeapon->SetPosition(vDropPosition);
@@ -138,12 +135,12 @@ bool C6SNetworkedPlayer::CanShootWeapon() {
 	return false;
 }
 
-Vector2f C6SNetworkedPlayer::GetShootPosition() {
+sf::Vector2f C6SNetworkedPlayer::GetShootPosition() {
 	CBaseProjectileWeapon* proj = (CBaseProjectileWeapon*)m_pHeldWeapon;
 	return proj->GetProjectileFirePosition();
 }
 
-Vector2f C6SNetworkedPlayer::GetShootVelocity() {
+sf::Vector2f C6SNetworkedPlayer::GetShootVelocity() {
 	CBaseProjectileWeapon* proj = (CBaseProjectileWeapon*)m_pHeldWeapon;
 	return proj->GetProjectileVelocity(m_pHeldWeapon->GetTrueRotation());
 }
@@ -154,7 +151,7 @@ int C6SNetworkedPlayer::GetWeaponDamage() {
 	return 0;
 }
 
-Vector2f C6SNetworkedPlayer::GetHandPosition() { 
+sf::Vector2f C6SNetworkedPlayer::GetHandPosition() {
 	return m_Hand.GetPosition2f(); 
 }
 

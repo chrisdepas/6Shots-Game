@@ -2,7 +2,6 @@
 #define __CPROJECTILEMANAGER_H__
 
 #include "CProjectile.h"
-#include <vector>
 class CGame;
 
 class CProjectileManager : public b2ContactListener {
@@ -15,8 +14,8 @@ public:
 		int iProjectileDamage;
 		int iPlayerID;
 		int iProjectileID;
-		Vector2f vVelocity;
-		Vector2f vPosition;
+		sf::Vector2f vVelocity;
+		sf::Vector2f vPosition;
 	};
 
 private:
@@ -34,8 +33,8 @@ public:
 	void Update(CWorldPhysics* pPhysics, bool bRecordCollisions);
 
 	/* Projectile functions */
-	int AddProjectile(CWorldPhysics* pPhysics, bool bGravity, int iDamage, int iRange, CBaseEntity* pOwner, Vector2f vLocation, Vector2f vVelocity); /* Returns projectile's ID */
-	void AddProjectileWithID(CWorldPhysics* pPhysics, bool bGravity, int iDamage, int iRange, CBaseEntity* pOwner, Vector2f vLocation, Vector2f vVelocity, int projectileID);
+	int AddProjectile(CWorldPhysics* pPhysics, bool bGravity, int iDamage, int iRange, CBaseEntity* pOwner, sf::Vector2f vLocation, sf::Vector2f vVelocity); /* Returns projectile's ID */
+	void AddProjectileWithID(CWorldPhysics* pPhysics, bool bGravity, int iDamage, int iRange, CBaseEntity* pOwner, sf::Vector2f vLocation, sf::Vector2f vVelocity, int projectileID);
 	void UpdateProjectiles(float delta);
 	void DrawProjectiles(CGame* pGame);
 	int GetLastProjectileID();

@@ -1,16 +1,34 @@
 #include "stdafx.h"
 #include "CAnimatedSprite.h"
-#include <rapidxml.hpp>
-#include <rapidxml_utils.hpp>
 #include "CGame.h"
 #include "DebugUtil.h"	
 #include "Util.h"
 
-void CAnimatedSprite::CAnimationFrame::Draw(CGame* pGame, Vector2i pos, bool bMirror, sf::Texture* spriteSheet, std::vector<CSpriteImg>& sprites) {
+
+void CAnimatedSprite::CAnimationFrame::Draw(CGame* pGame, sf::Shader& shader, sf::Vector2i pos, bool bMirror, sf::Texture* spriteSheet, std::vector<CSpriteImg>& sprites) {
 	DbgAssert(m_Images.size() > 0 && m_Images.size() < 100);
 
 	for (unsigned int i = 0; i < m_Images.size(); i++) {
-		Vector2i p = m_Images[i].m_vPosition;
+		sf::Vector2f p(m_Images[i].m_vPosition);
+
+		// Find image if not already found
+		if (m_Images[i].m_pSpriteImg == 0) {
+			const char* sImgName = m_Images[i].m_sSpriteName.c_str();
+			for (unsigned int j = 0; j < sprites.size(); j++) {
+				if (sprites[j].m_sSpriteName.compare(sImgName) == 0) {
+					m_Images[i].m_pSpriteImg = &sprites[j];
+				}
+			}
+		}
+		CSpriteImg* img = m_Images[i].m_pSpriteImg;
+		pGame->m_Drawing.DrawSpriteSheetSpriteCentred(pGame->GetWindowMgr(), sf::Vector2f(pos) + p, bMirror, img->m_vPosition, img->m_vSize, img->m_vSize, spriteSheet);
+	}
+}
+void CAnimatedSprite::CAnimationFrame::Draw(CGame* pGame, sf::Vector2i pos, bool bMirror, sf::Texture* spriteSheet, std::vector<CSpriteImg>& sprites) {
+	DbgAssert(m_Images.size() > 0 && m_Images.size() < 100);
+
+	for (unsigned int i = 0; i < m_Images.size(); i++) {
+		sf::Vector2f p(m_Images[i].m_vPosition);
 
 		// Find image if not already found
 		if (m_Images[i].m_pSpriteImg == 0) {
@@ -22,18 +40,21 @@ void CAnimatedSprite::CAnimationFrame::Draw(CGame* pGame, Vector2i pos, bool bMi
 			}
 		}
 		CSpriteImg* img = m_Images[i].m_pSpriteImg;
-		pGame->m_Drawing.DrawSpriteSheetSpriteCentred(pGame->GetWindowMgr(), pos.X + p.X, pos.Y + p.Y, bMirror, img->m_vPosition, img->m_vSize, img->m_vSize, spriteSheet);
+		pGame->m_Drawing.DrawSpriteSheetSpriteCentred(pGame->GetWindowMgr(), sf::Vector2f(pos) + p, bMirror, img->m_vPosition, img->m_vSize, img->m_vSize, spriteSheet);
 	}
 }  
 
-void CAnimatedSprite::CAnimation::Draw(CGame* pGame, Vector2i pos, sf::Texture* spriteSheet, bool bMirror, std::vector<CSpriteImg>& sprites) {
+void CAnimatedSprite::CAnimation::Draw(CGame* pGame, sf::Shader& shader, sf::Vector2i pos, sf::Texture* spriteSheet, bool bMirror, std::vector<CSpriteImg>& sprites) {
+	m_Frames[m_iCurFrame].Draw(pGame, pos, bMirror, spriteSheet, sprites);
+}
+void CAnimatedSprite::CAnimation::Draw(CGame* pGame, sf::Vector2i pos, sf::Texture* spriteSheet, bool bMirror, std::vector<CSpriteImg>& sprites) {
 	m_Frames[m_iCurFrame].Draw(pGame, pos, bMirror, spriteSheet, sprites);
 }
 
 void CAnimatedSprite::CAnimation::Update(float fDelta, bool bMirror) {
 	if (m_bStaticAnimation) { return; } 
 	
-	if (bMirror) { 
+	if (!bMirror) { 
 		// Run in reverse if mirrored
 		m_fTime -= fDelta;
 
@@ -148,13 +169,13 @@ bool CAnimatedSprite::ParseAnimationListXML(rapidxml::xml_document<>& xml) {
 					else if (strcmp(attr->name(), "x") == 0) {
 						// Read position X
 						int _x = strtol(attr->value(), NULL, 10);
-						newImg.m_vPosition.X = _x;
+						newImg.m_vPosition.x = _x;
 
 					}
 					else if (strcmp(attr->name(), "y") == 0) {
 						// Read position Y
 						int _y = strtol(attr->value(), NULL, 10);
-						newImg.m_vPosition.Y = _y;
+						newImg.m_vPosition.y = _y;
 
 					}
 					else if (strcmp(attr->name(), "z") == 0) {
@@ -217,25 +238,25 @@ bool CAnimatedSprite::ParseSubspriteXML(rapidxml::xml_document<>& xml) {
 			else if (strcmp(attr->name(), "x") == 0) {
 				// Load sprite position X 
 				int _x = strtol(attr->value(), NULL, 10);
-				newSprite.m_vPosition.X = _x;
+				newSprite.m_vPosition.x = _x;
 
 			}
 			else if (strcmp(attr->name(), "y") == 0) {
 				// Load sprite position Y
 				int _y = strtol(attr->value(), NULL, 10);
-				newSprite.m_vPosition.Y = _y;
+				newSprite.m_vPosition.y = _y;
 
 			}
 			else if (strcmp(attr->name(), "w") == 0) {
 				// Load sprite width 
 				int _w = strtol(attr->value(), NULL, 10);
-				newSprite.m_vSize.X = _w;
+				newSprite.m_vSize.x = _w;
 
 			}
 			else if (strcmp(attr->name(), "h") == 0) {
 				// Load sprite height 
 				int _h = strtol(attr->value(), NULL, 10);
-				newSprite.m_vSize.Y = _h;
+				newSprite.m_vSize.y = _h;
 
 			}
 		}
@@ -291,7 +312,7 @@ bool CAnimatedSprite::Load(char* szSprite) {
 	return true;
 }
 
-void CAnimatedSprite::Draw(CGame* pGame, Vector2i pos, bool bMirror) {
+void CAnimatedSprite::Draw(CGame* pGame, sf::Vector2i pos, bool bMirror) {
 	if (!m_bValid)
 		return;
 	if (m_pCurAnimation != 0)

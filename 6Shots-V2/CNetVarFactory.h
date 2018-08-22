@@ -2,7 +2,6 @@
 #define __CNETVARFACTORY_H__
 
 #include "CNetVar.h"
-#include <vector>
 
 class INetVarListener {
 	// NetVar with iID has changed -> send this out!

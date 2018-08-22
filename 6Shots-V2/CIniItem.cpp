@@ -1,9 +1,8 @@
 #include "stdafx.h"
 #include "CIniItem.h"
-#include <stdlib.h>
-#include <string>
 #include "Util.h"
 #include "CDebugLogger.h"
+#include "Util.h"
 /*
 	Michael & Christopher De Pasquale
 	Created:	Unknown, notice added 12 December 2016
@@ -26,7 +25,7 @@ bool CIniItem::MatchesKey(std::string& key) {
 bool CIniItem::GetBool(bool& __return_bool) {
 	// Get lowercase string
 	std::string lowerValue = m_sValue;
-	util::StringToLower(lowerValue);
+	util::StrLower(lowerValue);
 
 	if (lowerValue.length() == 1) {
 		if (lowerValue.compare("1") == 0 || lowerValue.compare("t") == 0) {

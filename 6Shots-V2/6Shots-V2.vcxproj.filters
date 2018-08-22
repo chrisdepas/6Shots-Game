@@ -76,6 +76,21 @@
     <Filter Include="Source Files\Utility">
       <UniqueIdentifier>{b1dd98da-fbe3-45dc-bde2-a913bc1e7128}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Shader">
+      <UniqueIdentifier>{59185567-a17b-4b89-835c-fbe9585848a8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Input">
+      <UniqueIdentifier>{27da4d2a-64e4-41c1-a3a2-e5a73598e7f4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Input">
+      <UniqueIdentifier>{876b0307-d9de-45e1-8b56-36d63484ba89}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\GUI">
+      <UniqueIdentifier>{f182d4d2-a47a-41d8-b6a2-bf96d0ac1e29}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\GUI">
+      <UniqueIdentifier>{5a63590c-9217-4d17-a98a-a590aed07e13}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Header Files\Shader">
       <UniqueIdentifier>{b52d2083-065f-4d0c-bd8d-1385a3a177fd}</UniqueIdentifier>
     </Filter>
@@ -96,13 +111,7 @@
     <ClInclude Include="CWindowManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Vector.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="CSettings.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="CInput.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Actions.h">
@@ -276,9 +285,6 @@
     <ClInclude Include="CLuaLink.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C6SMultiplayerMinigameState.h">
-      <Filter>Header Files\States</Filter>
-    </ClInclude>
     <ClInclude Include="CNetVar.h">
       <Filter>Header Files\Network</Filter>
     </ClInclude>
@@ -287,12 +293,6 @@
     </ClInclude>
     <ClInclude Include="CGlobalVars.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="C6SSingleplayerMinigameState.h">
-      <Filter>Header Files\States</Filter>
-    </ClInclude>
-    <ClInclude Include="C6SDevTestGM.h">
-      <Filter>Header Files\States</Filter>
     </ClInclude>
     <ClInclude Include="Util.h">
       <Filter>Header Files\Utility</Filter>
@@ -309,6 +309,45 @@
     <ClInclude Include="CShaderEffect.h">
       <Filter>Header Files\Shader</Filter>
     </ClInclude>
+    <ClInclude Include="CBaseMapParser.h">
+      <Filter>Header Files\Map</Filter>
+    </ClInclude>
+    <ClInclude Include="CMapParserBinaryV1.h">
+      <Filter>Header Files\Map</Filter>
+    </ClInclude>
+    <ClInclude Include="CDebugConsole.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C6SWeaponMakerState.h">
+      <Filter>Header Files\States</Filter>
+    </ClInclude>
+    <ClInclude Include="CTestShader.h">
+      <Filter>Header Files\Shader</Filter>
+    </ClInclude>
+    <ClInclude Include="CShaderManager.h">
+      <Filter>Header Files\Shader</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CerealTypes.h">
+      <Filter>Header Files\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="CInput.h">
+      <Filter>Header Files\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="CKeyMap.h">
+      <Filter>Header Files\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="FPSCounter.h">
+      <Filter>Header Files\Debug</Filter>
+    </ClInclude>
+    <ClInclude Include="FloatCast.h">
+      <Filter>Header Files\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="GUIFactory.h">
+      <Filter>Header Files\GUI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -321,9 +360,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CWindowManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="CInput.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CSettings.cpp">
@@ -470,23 +506,54 @@
     <ClCompile Include="CNetVar.cpp">
       <Filter>Source Files\Network</Filter>
     </ClCompile>
-    <ClCompile Include="C6SMultiplayerMinigameState.cpp">
-      <Filter>Source Files\States</Filter>
-    </ClCompile>
     <ClCompile Include="CNetVarFactory.cpp">
       <Filter>Source Files\Network</Filter>
-    </ClCompile>
-    <ClCompile Include="C6SSingleplayerMinigameState.cpp">
-      <Filter>Source Files\States</Filter>
-    </ClCompile>
-    <ClCompile Include="C6SDevTestGM.cpp">
-      <Filter>Source Files\States</Filter>
     </ClCompile>
     <ClCompile Include="Util.cpp">
       <Filter>Source Files\Utility</Filter>
     </ClCompile>
-    <ClCompile Include="CGameStateHandler.cpp">
+    <ClCompile Include="CDebugConsole.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C6SWeaponMakerState.cpp">
       <Filter>Source Files\States</Filter>
     </ClCompile>
+    <ClCompile Include="CShaderEffect.cpp">
+      <Filter>Source Files\Shader</Filter>
+    </ClCompile>
+    <ClCompile Include="CTestShader.cpp">
+      <Filter>Source Files\Shader</Filter>
+    </ClCompile>
+    <ClCompile Include="CShaderManager.cpp">
+      <Filter>Source Files\Shader</Filter>
+    </ClCompile>
+    <ClCompile Include="CInput.cpp">
+      <Filter>Source Files\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="CKeyMap.cpp">
+      <Filter>Source Files\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="FPSCounter.cpp">
+      <Filter>Source Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GUIFactory.cpp">
+      <Filter>Source Files\GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="CGameStateHandler.cpp">
+      <Filter>Source Files\Utility</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="6Shots-V2.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\icon.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\icon.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

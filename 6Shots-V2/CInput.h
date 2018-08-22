@@ -1,35 +1,36 @@
 #ifndef __CINPUT_H__
 #define __CINPUT_H__
 
-#include <vector>
-#include <map>
-#include "Vector.h"
-#include <SFML/Window.hpp>
 #include "Actions.h"
 
 class CGame;
 class CWindowManager;
+
 class CInput
 {
 public:
-	struct SCursorEvent { // Eventually this should handle both controller and mouse input
+	
+	// Eventually this should handle both controller and mouse input
+	struct SCursorEvent : public sf::Event::MouseButtonEvent {
 		bool m_bRelease;
-		sf::Mouse::Button m_button;
-		Vector2i m_vPosition;
-		SCursorEvent(sf::Mouse::Button button, Vector2i position, bool bRelease) {
-			m_button = button;
-			m_vPosition = position;
+		SCursorEvent(sf::Event::MouseButtonEvent event, bool bRelease) {
+			button = event.button;
+			x = event.x;
+			y = event.y;
 			m_bRelease = bRelease;
 		}
 		SCursorEvent() {}
+		sf::Vector2i Position2i() { return sf::Vector2i(x, y); }
+		sf::Vector2f Position2f() { return sf::Vector2f((float)x, (float)y); }
 	};
 
 private:
-	bool m_bInitialised;
-	std::map< sf::Keyboard::Key, EAction > m_KeyMap;
-	std::map< sf::Keyboard::Key, EAction > m_DefaultMap;
-	Vector2i m_vMousePosition;
-	std::vector< SCursorEvent > m_vCursorEvents;
+	bool m_bInitialised = false;
+	std::map<sf::Keyboard::Key, EAction> m_KeyMap;
+	std::map<sf::Keyboard::Key, EAction> m_DefaultMap;
+	sf::Vector2i m_vMousePosition = sf::Vector2i(0, 0);
+	std::vector<SCursorEvent> m_vCursorEvents;
+	std::vector<sf::Event::KeyEvent> m_vKeyEvents;
 
 	bool m_ButtonStates[sf::Mouse::ButtonCount];
 
@@ -37,8 +38,9 @@ private:
 	void LoadDefaultKeys();
 
 public: 
-	CInput() { m_bInitialised = false; m_vMousePosition.X = m_vMousePosition.Y = 0; ClearMouseStates(); }
-	~CInput();
+	CInput() { 	
+		ClearMouseStates(); 
+	}
 
 	/* Init defaults */
 	void Initialise();
@@ -51,17 +53,22 @@ public:
 	void SaveBindings(char* szFileName);
 
 	/* Should be called by window loop */
-	void InjectMousePress(int x, int y, sf::Mouse::Button Button);
-	void InjectMouseRelease(int x, int y, sf::Mouse::Button Button);
+	void InjectMousePress(sf::Event::MouseButtonEvent ev);
+	void InjectMouseRelease(sf::Event::MouseButtonEvent ev);
 	void InjectMouseMove(int x, int y);
 	void InjectMouseWheel(int delta);
+	void InjectKeyPress(sf::Event::KeyEvent ev);
 	void LostFocus();
 
 	/* Get current mouse position */
-	Vector2i GetMousePosition();
+	sf::Vector2i GetMousePosition();
 
 	/* Get next mouse event in queue */
 	bool GetNextCursorEvent(CInput::SCursorEvent& cursorEvent);
+
+	/* Get next key in queue */
+	bool GetNextKeyEvent(sf::Event::KeyEvent& cursorEvent);
+
 	/* Check for mouse events */
 	bool HasCursorEvents() { return !m_vCursorEvents.empty(); }
 
@@ -76,9 +83,6 @@ public:
 
 	/* Set all mouse button states to not-pressed*/
 	void CInput::ClearMouseStates() { memset(m_ButtonStates, 0, sizeof(m_ButtonStates)); }
-
-	/* Blocks until a character is pressed, returns it in __char_out. returns false on ESC press */
-	bool GetChar(char& __char_out, CGame* pGame);
 };
 
 #endif

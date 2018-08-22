@@ -31,11 +31,11 @@ void CGameStateHandler::Draw(CGame* pGame)
 		return;
 	m_State->Draw(pGame);
 }
-void CGameStateHandler::Update(CGame* pGame)
+void CGameStateHandler::Update(CGame* pGame, float fFrameTime)
 {
 	if (!m_State)
 		return;
-	m_State->Update(pGame);
+	m_State->Update(pGame, fFrameTime);
  }
 void CGameStateHandler::HandleInput(CGame* pGame)
 {

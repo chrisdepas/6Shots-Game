@@ -7,7 +7,7 @@
 
 */
 #include "CBaseEntity.h"
-#include "Vector.h"
+
 #include "CProjectileManager.h"
 #include "CEntityPhysics.h"
 #include "CSpentCasingEffect.h"
@@ -18,18 +18,20 @@ class CEntityManager;
 
 class CBaseWeapon : public CBaseEntity { 
 protected:
-	char* m_szName;
-	bool m_bIsProjectileWeapon;
-	Vector2i m_vHoldOffset;	// Offset for when gun is aimed left 
-	bool m_bFiring;
-	float m_fTrueRotation;
-	float m_fDrawRotation;
-	float m_fRecoilRotation; 
+	char* m_szName = NULL;
+	bool m_bIsProjectileWeapon = false;
+	bool m_bTriggerPrimary = false;
+	bool m_bTriggerSecondary = false;
+
+	// Offset for when gun is aimed left 
+	sf::Vector2i m_vHoldOffset = sf::Vector2i(0, 0);
+
+	float m_fTrueRotation = 0.0f;
+	float m_fDrawRotation = 0.0f;
+	float m_fRecoilRotation = 0.0f;
 	CEntityPhysics m_Physics;
 	
 public:
-
-	CBaseWeapon();
 
 	virtual void DefaultDraw(CGame* pGame);
 
@@ -37,9 +39,9 @@ public:
 	virtual void Attack(CGame* pGame, CEntityManager* pEntMgr, CWorldPhysics* pPhysics) = 0;
 
 	virtual bool CanCreateCasing() = 0;
-	virtual CSpentCasingEffect* CreateCasingEffect(CWorldPhysics* pPhysics, Vector2i vPos, Vector2f vEjectDirection, float fEjectRotation) = 0;
-	virtual Vector2f GetCasingCreateOffset() = 0;
-	virtual Vector2f GetCasingEjectDirection() = 0;
+	virtual CSpentCasingEffect* CreateCasingEffect(CWorldPhysics* pPhysics, sf::Vector2i vPos, sf::Vector2f vEjectDirection, float fEjectRotation) = 0;
+	virtual sf::Vector2f GetCasingCreateOffset() = 0;
+	virtual sf::Vector2f GetCasingEjectDirection() = 0;
 
 	virtual float GetRandomRecoil(CGame* pGame) {
 		CDebugLogger::LogError("[BASEWEAPON] GetRandomRecoil not implemented!\n");
@@ -62,25 +64,32 @@ public:
 //	virtual bool CanAttack() = 0;
 //	virtual bool IsProjectileWeapon() = 0;
 
+	void AttackPress() { m_bTriggerPrimary = true; }
+	void AttackRelease()  { m_bTriggerPrimary = false; }
+	bool TriggerPrimaryHeld() { return m_bTriggerPrimary; }
+
+	void AltPress() { m_bTriggerSecondary = true; }
+	void AltRelease()  { m_bTriggerSecondary = false; }
+	bool TriggerSecondaryHeld() { return m_bTriggerSecondary; }
+
 
 	/* Update locally only */
 	virtual void Update(CWorldPhysics* pPhysics, CGame* pGame, CProjectileManager* pProj, float fElapsedTime) = 0;
+
 	/* Update over a network (Includes server/client) */
 	virtual void NetworkedUpdate(CWorldPhysics* pPhysics, CGame* pGame, CProjectileManager* pProj, CEntityManager* pEntMgr, float fElapsedTime) = 0;
 	 
 	void UpdatePhysicsPosition();
 
 	void OnPickup();
-	void OnDrop(Vector2f dropVelocity);
+	void OnDrop(sf::Vector2f dropVelocity);
 
-	float GetTrueRotation();
-	void AttackPress();
-	void AttackRelease();
+	float GetTrueRotation() { return m_fTrueRotation; }
 
 	virtual int GetClipAmmo() { return 0; }
 	virtual int GetMaxAmmo() { return 0; }
 
-	Vector2i GetHoldOffset(); 
+	sf::Vector2i GetHoldOffset();
 
 	void SetTrueRotation(float fRot); // Set rotation
 	void SetDrawRotation(float fRot); // Set drawing rotation

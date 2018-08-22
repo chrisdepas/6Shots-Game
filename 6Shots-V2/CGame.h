@@ -11,6 +11,9 @@
 #include "CEventManager.h"
 #include "CSoundManager.h"
 #include "CDebugLogger.h"
+#include "CDebugConsole.h"
+#include "CEventScheduler.h"
+
 class CGame
 {
 	bool				m_bInitialised;
@@ -38,6 +41,9 @@ public:
 	CIniReader			m_IniReader;
 	CIniWriter			m_IniWriter;
 
+	CDebugConsole		m_Console;
+
+	CEventScheduler		m_Scheduler;
 	//CTextureManager		m_TextureManager;
 	
 	
@@ -51,7 +57,7 @@ public:
 	void Draw();
 	void HandleInput();
 	void Step();
-	void ErrorQuit(char* szMessage);
+	void ErrorQuit(const std::string& sMsg);
 	void OnSettingsChange();
 	void Quit();
 };

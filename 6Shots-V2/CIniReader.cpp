@@ -1,7 +1,5 @@
 #include "stdafx.h"
 #include "CIniReader.h"
-#include <stdio.h>
-#include <fstream>
 #include "CDebugLogger.h"
 #include "Util.h"
 

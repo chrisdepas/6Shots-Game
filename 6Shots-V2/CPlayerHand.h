@@ -2,8 +2,8 @@
 #define __CPLAYERHAND_H__
 
 #include "CBaseEntity.h"
-#include "SFML\Graphics.hpp"
 #include "CGame.h"
+
 class CPlayerHand : public CBaseEntity {
 	sf::Texture handTexture;
 	
@@ -21,15 +21,15 @@ class CPlayerHand : public CBaseEntity {
 public:
 
 	/* Init hand */
-	void Init(char* handTexture, int handSize, int reachDist, Vector2i playerCentre);
+	void Init(char* handTexture, int handSize, int reachDist, sf::Vector2i playerCentre);
 
 	/* Update position of hand from mouse
 		- playerCentre is center of player texture 
 		- fRecoilRotation is extra rotation of gun due to recoil, in radians  */
-	void UpdatePosition(Vector2i mousePosition, Vector2i playerCentre, float fRecoilRotation);
+	void UpdatePosition(sf::Vector2i mousePosition, sf::Vector2i playerCentre, float fRecoilRotation);
 
 	/* Update position & rotation of hand from network */
-	void UpdatePosition(Vector2f handPosition, float fHandRotation);
+	void UpdatePosition(sf::Vector2f handPosition, float fHandRotation);
 
 	/* Draw hand
 		- fRecoilRotation is extra rotation of gun due to recoil, in radians */

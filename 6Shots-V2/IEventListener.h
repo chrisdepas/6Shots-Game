@@ -4,8 +4,6 @@
 /*Michael De Pasquale 
 17-3-16*/
 
-#include <string>
-
 class CGame;
 class IEventListener {
 public:

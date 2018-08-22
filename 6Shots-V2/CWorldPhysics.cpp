@@ -17,13 +17,15 @@ float CWorldPhysics::GetPixelToMeterFactor() {
 } 
 
 void CWorldPhysics::Draw() {
-	if (m_bInit)
+	if (m_bInit) {
 		m_pWorldPhysics->DrawDebugData();
+	}
 }
 
 void CWorldPhysics::InitPhysics(CGame* pGame, float fGravity, bool bDebugDraw) {
-	if (m_bInit)
+	if (m_bInit) {
 		return;
+	}
 	m_vGravity.x = 0.0f;
 	m_vGravity.y = fGravity;
 
@@ -54,10 +56,10 @@ void CWorldPhysics::InitPhysics(CGame* pGame, float fGravity, bool bDebugDraw) {
 }
 
 #define WALL_THICKNESS 10.0f
-void CWorldPhysics::ParseWorldMap(C6SMap* map) {
+void CWorldPhysics::ParseWorldMap(C6SBaseMap* map) {
 	assert(m_bInit && m_pWorldPhysics);
 
-	Vector2i mapSize = map->GetSize();
+	sf::Vector2i mapSize = map->GetSize();
 
 	b2BodyDef boundsDef;
 	boundsDef.position.Set(0.0f, 0.0f);
@@ -65,7 +67,7 @@ void CWorldPhysics::ParseWorldMap(C6SMap* map) {
 
 	/* Left Wall */
 	b2PolygonShape leftWallShape;
-	leftWallShape.SetAsBox(WALL_THICKNESS, mapSize.Y / 2.0f, b2Vec2(-WALL_THICKNESS, mapSize.Y / 2.0f), 0.0f);
+	leftWallShape.SetAsBox(WALL_THICKNESS, mapSize.y / 2.0f, b2Vec2(-WALL_THICKNESS, mapSize.y / 2.0f), 0.0f);
 	/* Scale down to metres */
 	for (int i = 0; i < leftWallShape.GetVertexCount(); i++) {
 		leftWallShape.m_vertices[i] *= PIXEL_TO_METER;
@@ -76,7 +78,7 @@ void CWorldPhysics::ParseWorldMap(C6SMap* map) {
 
 	/* Right Wall */
 	b2PolygonShape rightWallShape;
-	rightWallShape.SetAsBox(WALL_THICKNESS, mapSize.Y / 2.0f, b2Vec2(mapSize.X + WALL_THICKNESS, mapSize.Y / 2.0f), 0.0f);
+	rightWallShape.SetAsBox(WALL_THICKNESS, mapSize.y / 2.0f, b2Vec2(mapSize.x + WALL_THICKNESS, mapSize.y / 2.0f), 0.0f);
 	/* Scale down to metres */
 	for (int i = 0; i < rightWallShape.GetVertexCount(); i++) {
 		rightWallShape.m_vertices[i] *= PIXEL_TO_METER;
@@ -87,7 +89,7 @@ void CWorldPhysics::ParseWorldMap(C6SMap* map) {
 
 	/* Top Wall */
 	b2PolygonShape topWallShape;
-	topWallShape.SetAsBox(mapSize.X / 2.0f, WALL_THICKNESS, b2Vec2(mapSize.X / 2.0f, -WALL_THICKNESS), 0.0f);
+	topWallShape.SetAsBox(mapSize.x / 2.0f, WALL_THICKNESS, b2Vec2(mapSize.x / 2.0f, -WALL_THICKNESS), 0.0f);
 	/* Scale down to metres */
 	for (int i = 0; i < topWallShape.GetVertexCount(); i++) {
 		topWallShape.m_vertices[i] *= PIXEL_TO_METER;
@@ -98,7 +100,7 @@ void CWorldPhysics::ParseWorldMap(C6SMap* map) {
 
 	/* Bottom Wall */
 	b2PolygonShape bottomWallShape;
-	bottomWallShape.SetAsBox(mapSize.X / 2.0f, WALL_THICKNESS, b2Vec2(mapSize.X / 2.0f,  mapSize.Y + WALL_THICKNESS), 0.0f);
+	bottomWallShape.SetAsBox(mapSize.x / 2.0f, WALL_THICKNESS, b2Vec2(mapSize.x / 2.0f,  mapSize.y + WALL_THICKNESS), 0.0f);
 	/* Scale down to metres */
 	for (int i = 0; i < bottomWallShape.GetVertexCount(); i++) {
 		bottomWallShape.m_vertices[i] *= PIXEL_TO_METER;
@@ -107,29 +109,28 @@ void CWorldPhysics::ParseWorldMap(C6SMap* map) {
 	bottomWallFixtureDef.shape = &bottomWallShape;
 	m_pGround->CreateFixture(&bottomWallFixtureDef);
 
-	std::vector<C6SMap::SMapShape> vCollisionRects;
-	b2PolygonShape rect;
-
 	/* Create collision polygons out of map shapes */
-	if (map->ShapeDecompose(vCollisionRects)) {
-		for (unsigned int i = 0; i < vCollisionRects.size(); i++) {
-			rect.SetAsBox(vCollisionRects[i].vSize.X / 2.0f, vCollisionRects[i].vSize.Y / 2.0f, 
-				b2Vec2((float)vCollisionRects[i].vCentrePos.X, (float)vCollisionRects[i].vCentrePos.Y), 0.0f);
+	std::vector<C6SBaseMap::SMapShape> vCollisionRects = map->ShapeCompose();
 
-			/* Scale down to metres */
-			for (int j = 0; j < rect.GetVertexCount(); j++) {
-				rect.m_vertices[j] *= PIXEL_TO_METER;
-			}
-			b2FixtureDef rectFixtureDef;
-			rectFixtureDef.shape = &rect; 
+	b2PolygonShape rect;
+	for (unsigned int i = 0; i < vCollisionRects.size(); i++) {
+		rect.SetAsBox(vCollisionRects[i].vSize.x / 2.0f, vCollisionRects[i].vSize.y / 2.0f, 
+			b2Vec2((float)vCollisionRects[i].vCentrePos.x, (float)vCollisionRects[i].vCentrePos.y), 0.0f);
 
-			/* Set category bits on ladder */
-			if (vCollisionRects[i].eShapeType == C6SMap::SMapTile::TYPE_LADDER)
-				rectFixtureDef.filter.categoryBits = CEntityPhysics::CATEGORY_LADDER;
-
-			m_pGround->CreateFixture(&rectFixtureDef);
+		/* Scale down to metres */
+		for (int j = 0; j < rect.GetVertexCount(); j++) {
+			rect.m_vertices[j] *= PIXEL_TO_METER;
 		}
+		b2FixtureDef rectFixtureDef;
+		rectFixtureDef.shape = &rect; 
+
+		/* Set category bits on ladder */
+		if (vCollisionRects[i].eShapeType == SMapTile::TYPE_LADDER)
+			rectFixtureDef.filter.categoryBits = CEntityPhysics::CATEGORY_LADDER;
+
+		m_pGround->CreateFixture(&rectFixtureDef);
 	}
+	
 }
 
 b2Body* CWorldPhysics::CreateBody(b2BodyDef* pDef) {

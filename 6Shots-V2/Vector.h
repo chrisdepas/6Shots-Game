@@ -1,7 +1,6 @@
 #ifndef __VECTOR_H__
 #define __VECTOR_H__
 
-#include <math.h>
 struct Vector2f
 {
 	float X;

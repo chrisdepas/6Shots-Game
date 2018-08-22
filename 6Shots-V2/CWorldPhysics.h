@@ -9,11 +9,17 @@
 */
 
 #include "C6SMap.h"
-#include <Box2D\Box2D.h>
+
 class CPhysicsDebugDraw;
 
+/* Game unit <-> Box2D unit conversion factors. Used to map smaller Box2D space 
+   to larger game space, as Box2D performs best when object sizes are in the 
+   range [0.1, 10]	*/
 #define METER_TO_PIXEL 60.0f
-#define PIXEL_TO_METER 1.0f/METER_TO_PIXEL
+#define PIXEL_TO_METER (1.0f/METER_TO_PIXEL)
+
+#define GAME_TO_PHYSICS_UNITS(x) (PIXEL_TO_METER*x)
+#define PHYSICS_TO_GAME_UNITS(x) (METER_TO_PIXEL*x)
 
 
 class CWorldPhysics : public b2ContactListener {
@@ -43,7 +49,7 @@ public:
 	void ClearWorldMap();
 
 	/* Load collision spaces from map */
-	void ParseWorldMap(C6SMap* map);
+	void ParseWorldMap(C6SBaseMap* map);
 
 	/* Create body */
 	b2Body* CreateBody(b2BodyDef* pDef);

@@ -3,16 +3,16 @@
 #include "CGame.h"
 #include "CDebugLogger.h"
 
-void CSpentCasingEffect::InitPhysics(CWorldPhysics* pWorldPhysics, Vector2i physicsPosition, Vector2f physicsVelocity, float fRotation, float fAngularRotation, Vector2i vSize) {
+void CSpentCasingEffect::InitPhysics(CWorldPhysics* pWorldPhysics, sf::Vector2i physicsPosition, sf::Vector2f physicsVelocity, float fRotation, float fAngularRotation, sf::Vector2i vSize) {
 	/* Initialise physics to ignore all collisions except walls */
-	m_Physics.InitPhysics(pWorldPhysics, physicsPosition.X, physicsPosition.Y, vSize.X, vSize.Y,
+	m_Physics.InitPhysics(pWorldPhysics, physicsPosition.x, physicsPosition.y, vSize.x, vSize.y,
 		CEntityPhysics::CATEGORY_PHYSICAL_EFFECT, ~(CEntityPhysics::CATEGORY_DEFAULT) );
 
 	m_Physics.SetRotationalVelocity(fAngularRotation);
 	m_Physics.SetVelocity(physicsVelocity);
 }
-void CSpentCasingEffect::Init(CWorldPhysics* pPhysics, char* szTexture, Vector2i vSize, Vector2i vPosition,
-	Vector2f vVelocity, float fRotation, float fAngularRotation) {
+void CSpentCasingEffect::Init(CWorldPhysics* pPhysics, char* szTexture, sf::Vector2i vSize, sf::Vector2i vPosition,
+	sf::Vector2f vVelocity, float fRotation, float fAngularRotation) {
 	if (!m_Texture.loadFromFile(szTexture)) {
 		CDebugLogger::LogWarning("[SPENTCASINGEFFECT] Unable to load texture %s, casing not loaded\n", szTexture);
 		return;
@@ -20,7 +20,7 @@ void CSpentCasingEffect::Init(CWorldPhysics* pPhysics, char* szTexture, Vector2i
 	m_fRotation = fRotation;
 	m_fDrawRotation = m_fRotation * 57.2958f;
 
-	m_vLocation = Vector2f((float)vPosition.X, (float)vPosition.Y);
+	m_vLocation = sf::Vector2f(vPosition);
 	m_vSize = vSize;
 	InitPhysics(pPhysics, vPosition, vVelocity, fRotation, fAngularRotation, vSize);
 	m_bInit = true;
@@ -40,14 +40,10 @@ void CSpentCasingEffect::Update(float fTimeDelta, CWorldPhysics* pWorldPhysics) 
 	}
 
 	if (m_Physics.IsActive()) {
-		/* Update physics position */
-		Vector2f pos = m_Physics.GetPosition();
-		m_vLocation = pos;
-
-		/* Update physics rotation */
-		float rot = m_Physics.GetRotation();
-		m_fRotation = rot;
-		m_fDrawRotation = m_fRotation * 57.2958f;
+		/* Sync effect to physics object */
+		m_vLocation = m_Physics.GetPosition();
+		m_fRotation = m_Physics.GetRotationRadian();
+		m_fDrawRotation = m_Physics.GetRotationDegree();
 	}
 }
 
@@ -67,5 +63,5 @@ void CSpentCasingEffect::Draw(CGame* pGame) {
 		fAlpha = m_fLifeTime / FADE_START;
 	}
 
-	pGame->m_Drawing.DrawSpriteCentred(pGame->GetWindowMgr(), (int)(m_vLocation.X), (int)(m_vLocation.Y), m_vSize.X, m_vSize.Y, fAlpha, m_fDrawRotation, &m_Texture);
+	pGame->m_Drawing.DrawSpriteCentred(pGame->GetWindowMgr(), (int)m_vLocation.x, (int)m_vLocation.y, m_vSize.x, m_vSize.y, fAlpha, m_fDrawRotation, &m_Texture);
 }

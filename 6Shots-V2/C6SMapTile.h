@@ -7,8 +7,8 @@ Unknown date, notice added 12 December 2016
 */
 
 class CGame;
-#include "Vector.h"
-#include "SFML\Graphics.hpp"
+
+
 class C6SMapTile {
 	Vector2i m_vSize;
 	bool m_bInit;

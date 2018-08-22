@@ -28,7 +28,7 @@ public:
 	virtual void Cleanup(CGame* pGame) = 0;
 
 	virtual void Draw(CGame* pGame) = 0;
-	virtual void Update(CGame* pGame) = 0;
+	virtual void Update(CGame* pGame, float fFrameTime) = 0;
 	virtual void HandleInput(CGame* pGame) = 0;
 
 	/* Pause/Resume */

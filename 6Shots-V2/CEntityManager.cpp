@@ -85,11 +85,11 @@ void CEntityManager::DestroyAllEntities() {
 	m_Casings.clear();
 }
 
-C6SBaseNetworkedWeapon* CEntityManager::ClosestWeapon(Vector2i pos, float maxDist) {
+C6SBaseNetworkedWeapon* CEntityManager::ClosestWeapon(sf::Vector2i pos, float maxDist) {
 	float smallestDist = maxDist + 1.0f;
 	C6SBaseNetworkedWeapon* closestWep = 0;
 	for (unsigned int i = 0; i < m_Weapons.size(); i++) {
-		float dist = (m_Weapons[i]->GetPosition2i() - pos).Length();
+		float dist = vec::Length(m_Weapons[i]->GetPosition2i() - pos);
 		if (dist < maxDist && dist < smallestDist) {
 			smallestDist = dist;
 			closestWep = m_Weapons[i];
@@ -97,17 +97,8 @@ C6SBaseNetworkedWeapon* CEntityManager::ClosestWeapon(Vector2i pos, float maxDis
 	}
 	return closestWep;
 }
-C6SBaseNetworkedWeapon* CEntityManager::ClosestWeapon(Vector2f pos, float maxDist) {
-	float smallestDist = maxDist + 1.0f;
-	C6SBaseNetworkedWeapon* closestWep = 0;
-	for (unsigned int i = 0; i < m_Weapons.size(); i++) {
-		float dist = (m_Weapons[i]->GetPosition2f() - pos).Length();
-		if (dist < maxDist && dist < smallestDist) {
-			smallestDist = dist;
-			closestWep = m_Weapons[i];
-		}
-	}
-	return closestWep;
+C6SBaseNetworkedWeapon* CEntityManager::ClosestWeapon(sf::Vector2f pos, float maxDist) {
+	return ClosestWeapon(sf::Vector2i(pos), maxDist);
 }
 C6SBaseNetworkedWeapon* CEntityManager::GetWeaponByID(int iWeaponID) {
 	for (unsigned int i = 0; i < m_Weapons.size(); i++) {

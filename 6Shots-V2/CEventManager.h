@@ -7,10 +7,6 @@ Modifications by Christopher De Pasquale
 */
 
 #include "IEventListener.h"
-#include <string>
-#include <stdlib.h>
-#include <map>
-#include <vector>
 
 class CGame;
 class CEventManager {

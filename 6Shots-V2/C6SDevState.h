@@ -15,14 +15,13 @@
 #include "CEntityManager.h"
 #include "CWorldPhysics.h"
 #include "CGoreEngine.h"
-#include <Box2d/Box2D.h>
-#include "CLuaLink.h"
+//#include "CLuaLink.h"
 #include "CBaseNPC.h"
  
 /* Testing stage */
 class C6SDevState : public CGameState {
 	CProjectileManager m_ProjectileManager;
-	C6SMap m_Map;
+	C6SReleaseMap m_Map;
 	C6SPlayer m_Player;
 	CGlobal m_gameSettings;
 	CEntityManager m_EntMgr; 
@@ -30,7 +29,9 @@ class C6SDevState : public CGameState {
 	CGoreEngine m_Gore;
 
 	// lua 
-	CLuaLink m_LuaLink;
+	//CLuaLink m_LuaLink;
+
+	tgui::Gui m_GUI;
 
 public:
 	
@@ -38,7 +39,7 @@ public:
 	void C6SDevState::Cleanup(CGame* pGame);
 
 	void C6SDevState::Draw(CGame* pGame);
-	void C6SDevState::Update(CGame* pGame);
+	void C6SDevState::Update(CGame* pGame, float fFrameTime);
 	void C6SDevState::HandleInput(CGame* pGame);
 
 	void C6SDevState::PauseState();

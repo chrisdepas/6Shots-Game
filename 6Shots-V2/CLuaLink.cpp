@@ -1,8 +1,6 @@
 #include "stdafx.h"
-#include "CLuaLink.h"
+/*#include "CLuaLink.h"
 #include "CDebugLogger.h"
-#include <assert.h>
-#include <errno.h>
 
 bool CLuaLink::InitLua() {
 	// don't overwrite current state 
@@ -171,7 +169,7 @@ bool CLuaLink::DumpSDK(char* szSDKFilePath) {
 	}
 
 	// SDK version & name 
-	fprintf(file, "\n%s SDK version %i.%i", m_sSDKName, m_iSDKVersionMajor, m_iSDKVersionMinor);
+	fprintf(file, "\n%s SDK version %i.%i", m_sSDKName.c_str(), m_iSDKVersionMajor, m_iSDKVersionMinor);
 
 	// Functions which must be defined
 	for (unsigned int i = 0; i < EXPECTEDFUNCS_COUNT; i++) {
@@ -190,7 +188,7 @@ bool CLuaLink::DumpSDK(char* szSDKFilePath) {
 
 bool CLuaLink::PrintSDK() {
 	// SDK version & name 
-	fprintf(stdout, "\n%s SDK version %i.%i", m_sSDKName, m_iSDKVersionMajor, m_iSDKVersionMinor);
+	fprintf(stdout, "\n%s SDK version %i.%i", m_sSDKName.c_str(), m_iSDKVersionMajor, m_iSDKVersionMinor);
 
 	// Functions which must be defined
 	for (unsigned int i = 0; i < EXPECTEDFUNCS_COUNT; i++) {
@@ -204,4 +202,4 @@ bool CLuaLink::PrintSDK() {
 	}
 
 	return true;
-}
+}*/

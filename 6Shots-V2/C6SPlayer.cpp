@@ -5,27 +5,27 @@
 #include "CDebugLogger.h"
 #include "CBaseProjectileWeapon.h"
 
-Vector2f C6SPlayer::GetHandPosition() {
+sf::Vector2f C6SPlayer::GetHandPosition() {
 	return m_Hand.GetPosition2f();
 }
 float C6SPlayer::GetHandRotation() {
 	return m_Hand.GetTrueRotation();
 }
-void C6SPlayer::SetPosition(Vector2f p) {
+void C6SPlayer::SetPosition(sf::Vector2f p) {
 	m_vLocation = p;
 	m_PlayerPhysics.SetPosition(p);
 }
 
-void C6SPlayer::SetPosition(Vector2i p) { 
-	m_vLocation.X = (float)p.X;
-	m_vLocation.Y = (float)p.Y;
+void C6SPlayer::SetPosition(sf::Vector2i p) {
+	m_vLocation = sf::Vector2f(p);
 	m_PlayerPhysics.SetPosition(p);
 }
 
-void C6SPlayer::Initialize(CWorldPhysics* pPhysics, char* playerSprite, char* handTexture, int handSize, int playerReach, int height, int width, float jumpSpeed, float moveSpeed, Vector2i location, int NetworkID) {
+void C6SPlayer::Initialize(CWorldPhysics* pPhysics, char* playerSprite, char* handTexture, 
+	int handSize, int playerReach, int height, int width, float jumpSpeed, float moveSpeed, sf::Vector2i location, int NetworkID) {
 	// Input defaults
 	m_bMoveLeft = m_bMoveRight = m_bJump = m_bInAir = false;
-	m_vVelocity.X = m_vVelocity.Y = 0.0f;
+	m_vVelocity = sf::Vector2f(0.0f, 0.0f);
 	m_fJumpSpeed = jumpSpeed; 
 	m_fMoveSpeed = moveSpeed;
 	
@@ -37,19 +37,18 @@ void C6SPlayer::Initialize(CWorldPhysics* pPhysics, char* playerSprite, char* ha
 
 	// Player
 	m_bAffectedByGravity = true;
-	m_vLocation = Vector2f((float)location.X, (float)location.Y);
+	m_vLocation = sf::Vector2f(location);
 	m_height = height;
 	m_width = width;
 	m_PlayerSprite.Load(playerSprite);
 	m_PlayerSprite.SetAnimation("idle");
 
 	// Hand
-	Vector2i playerCentre = location;
-	playerCentre.Y -= height / 2;
+	sf::Vector2i playerCentre = sf::Vector2i(location.x, location.y - (height/2));
 	m_Hand.Init(handTexture, handSize, playerReach, playerCentre);
 }
 
-void C6SPlayer::Update(float fElapsedTime, CGame* pGame, C6SMap* map, CProjectileManager* pProj, CWorldPhysics* pPhysics) {
+void C6SPlayer::Update(float fElapsedTime, CGame* pGame, CProjectileManager* pProj, CWorldPhysics* pPhysics) {
 	if (IsDead())
 		return; 
 
@@ -59,9 +58,7 @@ void C6SPlayer::Update(float fElapsedTime, CGame* pGame, C6SMap* map, CProjectil
 	m_PlayerSprite.Update(fElapsedTime, !GetBaseFlag(FL_FACING_LEFT));
 
 	// Update position
-	Vector2f physPos = m_PlayerPhysics.GetPosition();
-	m_vLocation.X = physPos.X;
-	m_vLocation.Y = physPos.Y + m_height / 2.0f;
+	m_vLocation = m_PlayerPhysics.GetPosition() + sf::Vector2f(0.0f, m_height / 2.0f);
 	
 	// Update InAir
 	m_bInAir = m_PlayerPhysics.InAir(); 
@@ -93,15 +90,14 @@ void C6SPlayer::Update(float fElapsedTime, CGame* pGame, C6SMap* map, CProjectil
 
 	/* Calculate hand velocity */
 	if (fCurTime - m_fLastHandPollTime > HAND_POLL_TIME) {
-		Vector2i handDelta = m_Hand.GetPosition2i() - m_vLastHandPoll;
-		m_vHandVelocity.X = handDelta.X / (fCurTime - m_fLastHandPollTime);
-		m_vHandVelocity.Y = handDelta.Y / (fCurTime - m_fLastHandPollTime);
+		sf::Vector2f handDelta = sf::Vector2f(m_Hand.GetPosition2i() - m_vLastHandPoll);
+		m_vHandVelocity = handDelta / (fCurTime - m_fLastHandPollTime);
 		
 		m_fLastHandPollTime = fCurTime;
 		m_vLastHandPoll = m_Hand.GetPosition2i();
 	}
 }
-void C6SPlayer::UpdateNetworked(float fElapsedTime, CGame* pGame, C6SMap* map, CProjectileManager* pProj, CWorldPhysics* pPhysics, CEntityManager* pEntMgr) {
+void C6SPlayer::UpdateNetworked(float fElapsedTime, CGame* pGame, CProjectileManager* pProj, CWorldPhysics* pPhysics, CEntityManager* pEntMgr) {
 	/* Don't update on death */
 	if (IsDead())
 		return;
@@ -112,9 +108,7 @@ void C6SPlayer::UpdateNetworked(float fElapsedTime, CGame* pGame, C6SMap* map, C
 	m_PlayerSprite.Update(fElapsedTime, !GetBaseFlag(FL_FACING_LEFT));
 
 	// Update position
-	Vector2f physPos = m_PlayerPhysics.GetPosition();
-	m_vLocation.X = physPos.X;
-	m_vLocation.Y = physPos.Y + m_height / 2.0f;
+	m_vLocation = m_PlayerPhysics.GetPosition() + sf::Vector2f(0.0f, m_height / 2.0f);
 
 	// Update InAir
 	m_bInAir = m_PlayerPhysics.InAir();
@@ -146,9 +140,8 @@ void C6SPlayer::UpdateNetworked(float fElapsedTime, CGame* pGame, C6SMap* map, C
 
 	/* Calculate hand velocity */
 	if (fCurTime - m_fLastHandPollTime > HAND_POLL_TIME) {
-		Vector2i handDelta = m_Hand.GetPosition2i() - m_vLastHandPoll;
-		m_vHandVelocity.X = handDelta.X / (fCurTime - m_fLastHandPollTime);
-		m_vHandVelocity.Y = handDelta.Y / (fCurTime - m_fLastHandPollTime);
+		sf::Vector2f handDelta = sf::Vector2f(m_Hand.GetPosition2i() - m_vLastHandPoll);
+		m_vHandVelocity = handDelta / (fCurTime - m_fLastHandPollTime);
 
 		m_fLastHandPollTime = fCurTime;
 		m_vLastHandPoll = m_Hand.GetPosition2i();
@@ -157,7 +150,7 @@ void C6SPlayer::UpdateNetworked(float fElapsedTime, CGame* pGame, C6SMap* map, C
 bool C6SPlayer::IsWeaponEquipped() {
 	return m_pWeapon != NULL;
 }
-Vector2i C6SPlayer::HandLocation() {
+sf::Vector2i C6SPlayer::HandLocation() {
 	return m_Hand.GetPosition2i();
 }
 void C6SPlayer::DropWeapon(CEntityManager* pEntMgr) {
@@ -189,7 +182,7 @@ void C6SPlayer::HandleInput(CGame* pGame, CEntityManager* pEntMgr, bool bInputEn
 		/* Ignore input */
 		if (!bInputEnabled)
 			continue;
-		if (curEvent.m_button == sf::Mouse::Left)  {
+		if (curEvent.button == sf::Mouse::Left)  {
 			if (curEvent.m_bRelease) {
 				/* Attack button released */
 				if (IsWeaponEquipped()) {
@@ -210,7 +203,8 @@ void C6SPlayer::HandleInput(CGame* pGame, CEntityManager* pEntMgr, bool bInputEn
 					m_pWeapon->AttackPress();
 				}
 			}
-		} else if (curEvent.m_button == sf::Mouse::Right) {
+		}
+		else if (curEvent.button == sf::Mouse::Right) {
 			if (curEvent.m_bRelease) {
 				// Release Right Mouse 
 			} else {
@@ -242,14 +236,14 @@ void C6SPlayer::HandleInput(CGame* pGame, CEntityManager* pEntMgr, bool bInputEn
 	}
 
 	/* Get body centre */
-	Vector2i centre((int)m_vLocation.X, (int)(m_vLocation.Y - (float)m_height / 2.0f));
+	sf::Vector2i centre = sf::Vector2i(m_vLocation - sf::Vector2f(0.0f, m_height / 2.0f));
 
 	/* Mouse in-world position */
-	Vector2i vMouseScreen = pGame->m_Input.GetMousePosition();
-	Vector2i vMouseWorld = pGame->m_WindowManager.ScreenToWorld(vMouseScreen);
+	sf::Vector2i vMouseScreen = pGame->m_Input.GetMousePosition();
+	sf::Vector2i vMouseWorld = pGame->m_WindowManager.ScreenToWorld(vMouseScreen);
 
 	/* Get hand direction & weapon recoil */
-	bool bFacingLeft = (vMouseWorld.X < centre.X);
+	bool bFacingLeft = (vMouseWorld.x < centre.x);
 	m_Hand.SetBaseFlag(FL_FACING_LEFT, bFacingLeft);
 	float recoil = 0.0f;
 	if (IsWeaponEquipped()) {
@@ -267,7 +261,7 @@ void C6SPlayer::HandleInputNetworked(CGame* pGame, CEntityManager* pEntMgr, bool
 		if (!bInputEnabled)
 			continue;
 
-		if (curEvent.m_button == sf::Mouse::Left)  {
+		if (curEvent.button == sf::Mouse::Left)  {
 			if (curEvent.m_bRelease) {
 				/* Attack button released */
 				if (IsWeaponEquipped()) {
@@ -301,7 +295,7 @@ void C6SPlayer::HandleInputNetworked(CGame* pGame, CEntityManager* pEntMgr, bool
 				}
 			}
 		}
-		else if (curEvent.m_button == sf::Mouse::Right) {
+		else if (curEvent.button == sf::Mouse::Right) {
 			if (curEvent.m_bRelease) {
 				// Release Right Mouse 
 			}
@@ -352,14 +346,14 @@ void C6SPlayer::HandleInputNetworked(CGame* pGame, CEntityManager* pEntMgr, bool
 	}
 
 	/* Get body centre */
-	Vector2i centre((int)m_vLocation.X, (int)(m_vLocation.Y - (float)m_height / 2.0f));
+	sf::Vector2i centre = sf::Vector2i(m_vLocation - sf::Vector2f(0.0, m_height / 2.0f));
 
 	/* Mouse in-world position */
-	Vector2i vMouseScreen = pGame->m_Input.GetMousePosition();
-	Vector2i vMouseWorld = pGame->m_WindowManager.ScreenToWorld(vMouseScreen);
+	sf::Vector2i vMouseScreen = pGame->m_Input.GetMousePosition();
+	sf::Vector2i vMouseWorld = pGame->m_WindowManager.ScreenToWorld(vMouseScreen);
 	 
 	/* Get hand direction & weapon recoil */
-	bool bFacingLeft = (vMouseWorld.X < centre.X);
+	bool bFacingLeft = (vMouseWorld.x < centre.x);
 	m_Hand.SetBaseFlag(FL_FACING_LEFT, bFacingLeft);
 	float recoil = 0.0f;
 	if (IsWeaponEquipped()) {
@@ -369,16 +363,17 @@ void C6SPlayer::HandleInputNetworked(CGame* pGame, CEntityManager* pEntMgr, bool
 
 	m_Hand.UpdatePosition(vMouseWorld, centre, recoil);
 }
+
 void C6SPlayer::Draw(CGame* pGame) {
-	Vector2i c((int)m_vLocation.X, (int)(m_vLocation.Y - (float)m_height / 2.0f));
-	m_PlayerSprite.Draw(pGame, c, !GetBaseFlag(FL_FACING_LEFT));
+	sf::Vector2i centre = sf::Vector2i(m_vLocation - sf::Vector2f(0.0, m_height / 2.0f));
+	m_PlayerSprite.Draw(pGame, centre, GetBaseFlag(FL_FACING_LEFT));
 	float fWeaponRecoil = 0.0f;
 	if (IsWeaponEquipped()) {
 		fWeaponRecoil = m_pWeapon->GetRecoilRotation();
 	}
 	m_Hand.Draw(pGame, fWeaponRecoil * 57.2958f);
 	if (IsWeaponEquipped()) {
-		Vector2i handPos = m_Hand.GetPosition2i();
+		sf::Vector2i handPos = m_Hand.GetPosition2i();
 		m_pWeapon->SetPosition(handPos); 
 		m_pWeapon->DefaultDraw(pGame);
 	}
@@ -408,7 +403,7 @@ void C6SPlayer::NetworkedOnDeath(CGame* pGame, CEntityManager* pEntMgr) {
 	//m_PlayerPhysics.DisableCollisions();
 
 	m_vDeathPosition = m_vLocation;
-	m_PlayerPhysics.SetPosition(Vector2f(-1000.0f, -1000.0f));
+	m_PlayerPhysics.SetPosition(sf::Vector2f(-1000.0f, -1000.0f));
 
 	/* Disable physics */
 	m_PlayerPhysics.DisablePhysics();
@@ -432,7 +427,7 @@ bool C6SPlayer::NetworkedEquipWeapon(C6SBaseNetworkedWeapon* pWeapon, CEntityMan
 	}
 	return false;
 }
-bool C6SPlayer::NetworkedDropWeapon(CEntityManager* pEntMgr, Vector2f vDropPosition, Vector2f vDropVelocitiy, float fThrowRotation) {
+bool C6SPlayer::NetworkedDropWeapon(CEntityManager* pEntMgr, sf::Vector2f vDropPosition, sf::Vector2f vDropVelocitiy, float fThrowRotation) {
 	if (IsWeaponEquipped()) {
 		pEntMgr->AddWeapon(m_pWeapon);
 		m_pWeapon->OnDrop(vDropVelocitiy);

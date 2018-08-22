@@ -9,7 +9,6 @@
 */
 
 #include "CSoundItem.h"
-#include <vector>
 
 class CSettings;
 class CSoundManager 

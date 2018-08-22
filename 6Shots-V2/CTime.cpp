@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "CTime.h"
 
-#include <time.h>
 CTime::CTime()
 {
 	m_totalClock.restart();

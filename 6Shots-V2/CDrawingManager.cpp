@@ -41,8 +41,18 @@ void CDrawingManager::Initialise()
 	m_fFont.loadFromFile(ASSET_DEFAULT_FONT);
 }
 
-void CDrawingManager::DrawSprite(CWindowManager* pWindowManager, int X, int Y, int iWidth, int iHeight, sf::Texture* pTexture)
-{
+void CDrawingManager::DrawSprite(CWindowManager* pWindowManager, int X, int Y, int size, sf::Texture* pTexture) {
+	sf::Sprite sp;
+	sp.setTexture(*pTexture);
+	sp.setPosition(sf::Vector2f((float)X, (float)Y));
+
+	sf::Vector2u f = pTexture->getSize();
+	sf::Vector2f scale((float)size / f.x, (float)size / f.y);
+	sp.setScale(scale);
+
+	pWindowManager->Draw(&sp);
+}
+void CDrawingManager::DrawSprite(CWindowManager* pWindowManager, int X, int Y, int iWidth, int iHeight, sf::Texture* pTexture) {
 	if (!pTexture)
 		return;
 
@@ -59,17 +69,16 @@ void CDrawingManager::DrawSprite(CWindowManager* pWindowManager, int X, int Y, i
 	/* Draw to window*/
 	pWindowManager->Draw(&sp);
 }
-void CDrawingManager::DrawSpriteSheetSpriteCentred(CWindowManager* pWindowManager, int X, int Y, bool bMirror, Vector2i sheetPos, Vector2i sheetSize, Vector2i drawSize, sf::Texture* pTexture) {
+void CDrawingManager::DrawSpriteSheetSpriteCentred(CWindowManager* pWindowManager, sf::Vector2f position, bool bMirror, sf::Vector2i sheetPos, sf::Vector2i sheetSize, sf::Vector2i drawSize, sf::Texture* pTexture) {
 	if (!pTexture)
 		return;
 
 	/* Create a renderable sprite */
 	sf::Sprite sp;
 	sp.setTexture(*pTexture);
-	sp.setTextureRect(sf::IntRect(sheetPos.X, sheetPos.Y, sheetSize.X, sheetSize.Y));
-	sp.setPosition(sf::Vector2f((float)X, (float)Y));
-
-	sp.setOrigin(drawSize.X / 2.0f, drawSize.Y / 2.0f);
+	sp.setTextureRect(sf::IntRect(sheetPos, sheetSize));
+	sp.setPosition(position);
+	sp.setOrigin(sf::Vector2f(drawSize) / 2.0f);
 
 	if (bMirror)
 		sp.setScale(-1.0f, 1.0f);
@@ -81,22 +90,21 @@ void CDrawingManager::DrawSpriteSheetSpriteCentred(CWindowManager* pWindowManage
 	/* Draw to window*/
 	pWindowManager->Draw(&sp);
 }
-void CDrawingManager::DrawRectangleOutline(CWindowManager* pWindowManager, Vector2i v1, Vector2i v2, unsigned __int8 R, unsigned __int8 G,
-	unsigned __int8 B, unsigned __int8 A) {
-
+void CDrawingManager::DrawRectangleOutline(CWindowManager* pWindowManager, sf::Vector2i v1, sf::Vector2i v2, sf::Color color) {
+	
 	sf::Vertex rectangle[] =
 	{
-		sf::Vertex(sf::Vector2f((float)v1.X, (float)v1.Y), sf::Color(R, G, B, A)),		// (X1, Y1) to (X1, Y2)
-		sf::Vertex(sf::Vector2f((float)v1.X, (float)v2.Y), sf::Color(R, G, B, A)),
+		sf::Vertex(sf::Vector2f((float)v1.x, (float)v1.y), color),		// (X1, Y1) to (X1, Y2)
+		sf::Vertex(sf::Vector2f((float)v1.x, (float)v2.y), color),
 
-		sf::Vertex(sf::Vector2f((float)v1.X, (float)v1.Y), sf::Color(R, G, B, A)),		// (X1, Y1) to (X2, Y1)
-		sf::Vertex(sf::Vector2f((float)v2.X, (float)v1.Y), sf::Color(R, G, B, A)),
+		sf::Vertex(sf::Vector2f((float)v1.x, (float)v1.y), color),		// (X1, Y1) to (X2, Y1)
+		sf::Vertex(sf::Vector2f((float)v2.x, (float)v1.y), color),
 
-		sf::Vertex(sf::Vector2f((float)v2.X, (float)v1.Y), sf::Color(R, G, B, A)),		// (X2, Y1) to (X2, Y2)
-		sf::Vertex(sf::Vector2f((float)v2.X, (float)v2.Y), sf::Color(R, G, B, A)),
+		sf::Vertex(sf::Vector2f((float)v2.x, (float)v1.y), color),		// (X2, Y1) to (X2, Y2)
+		sf::Vertex(sf::Vector2f((float)v2.x, (float)v2.y), color),
 
-		sf::Vertex(sf::Vector2f((float)v1.X, (float)v2.Y), sf::Color(R, G, B, A)),		// (X1, Y2) to (X2, Y2)
-		sf::Vertex(sf::Vector2f((float)v2.X, (float)v2.Y), sf::Color(R, G, B, A))
+		sf::Vertex(sf::Vector2f((float)v1.x, (float)v2.y), color),		// (X1, Y2) to (X2, Y2)
+		sf::Vertex(sf::Vector2f((float)v2.x, (float)v2.y), color)
 	};
 	pWindowManager->DrawVertices(rectangle, 8, sf::Lines);
 
@@ -116,8 +124,23 @@ void CDrawingManager::DrawText(CWindowManager* pWindowManager, char* szText, int
 	text.setFont(m_fFont);
 	text.setString(szText);
 	text.setCharacterSize(iSize);
-	text.setColor(sf::Color(R, G, B, A));
+	text.setFillColor(sf::Color(R, G, B, A));
 	text.setPosition((float)X, (float)Y);
+	pWindowManager->Draw(&text);
+}
+void CDrawingManager::DrawTextCentred(CWindowManager* pWindowManager, const std::string& szText, sf::Vector2f drawPos, int iSize, sf::Color color)
+{
+	sf::Text text;
+	text.setFont(m_fFont);
+	text.setString(szText);
+	text.setCharacterSize(iSize);
+
+	/* Centre the text */
+	sf::FloatRect bound = text.getGlobalBounds();
+	text.setOrigin(bound.left + bound.width / 2.0f, bound.top + bound.height / 2.0f);
+
+	text.setFillColor(color);
+	text.setPosition(drawPos);
 	pWindowManager->Draw(&text);
 }
 void CDrawingManager::DrawTextCentred(CWindowManager* pWindowManager, char* szText, int X, int Y, int iSize, unsigned __int8 R,
@@ -132,7 +155,7 @@ void CDrawingManager::DrawTextCentred(CWindowManager* pWindowManager, char* szTe
 	sf::FloatRect bound = text.getGlobalBounds();
 	text.setOrigin(bound.left + bound.width / 2.0f, bound.top + bound.height / 2.0f);
 
-	text.setColor(sf::Color(R, G, B, A));
+	text.setFillColor(sf::Color(R, G, B, A));
 	text.setPosition((float)X, (float)Y);
 	pWindowManager->Draw(&text);
 }
@@ -148,8 +171,23 @@ void CDrawingManager::DrawTextCentredX(CWindowManager* pWindowManager, char* szT
 	sf::FloatRect bound = text.getGlobalBounds();
 	text.setOrigin(bound.left + bound.width / 2.0f, 0);
 
-	text.setColor(sf::Color(R, G, B, A));
+	text.setFillColor(sf::Color(R, G, B, A));
 	text.setPosition((float)X, (float)Y);
+	pWindowManager->Draw(&text);
+}
+
+void CDrawingManager::DrawTextCentredX(CWindowManager* pWindowManager, char* szText, sf::Vector2f position, int textSize, sf::Color color) {
+	sf::Text text;
+	text.setFont(m_fFont);
+	text.setString(szText);
+	text.setCharacterSize(textSize);
+
+	/* Centre the text */
+	sf::FloatRect bound = text.getGlobalBounds();
+	text.setOrigin(bound.left + bound.width / 2.0f, 0);
+
+	text.setFillColor(color);
+	text.setPosition(position);
 	pWindowManager->Draw(&text);
 }
 void CDrawingManager::DrawSpriteCentred(CWindowManager* pWindowManager, int X, int Y, int iWidth, int iHeight, float fAlpha, sf::Texture* pTexture)
@@ -221,7 +259,7 @@ void CDrawingManager::DrawSpriteCentred(CWindowManager* pWindowManager, int X, i
 	/* Draw to window*/
 	pWindowManager->Draw(&sp);
 }
-void CDrawingManager::DrawSpriteCentred(CWindowManager* pWindowManager, Vector2i vPosition, int iWidth, int iHeight, sf::Texture* pTexture)
+void CDrawingManager::DrawSpriteCentred(CWindowManager* pWindowManager, sf::Vector2i vPosition, sf::Vector2i size, sf::Texture* pTexture)
 {
 	if (!pTexture)
 		return;
@@ -229,7 +267,26 @@ void CDrawingManager::DrawSpriteCentred(CWindowManager* pWindowManager, Vector2i
 	/* Create a renderable sprite */
 	sf::Sprite sp;
 	sp.setTexture(*pTexture);
-	sp.setPosition((float)vPosition.X, (float)vPosition.Y);
+	sp.setPosition(sf::Vector2f(vPosition));
+	sp.setOrigin(sf::Vector2f(pTexture->getSize()) / 2.0f);
+
+	/* Scale to required dimensions */
+	sf::Vector2f tSize = sf::Vector2f(pTexture->getSize());
+	sf::Vector2f scale(size.x / tSize.x, tSize.y / tSize.y);
+	sp.setScale(scale);
+
+	/* Draw to window*/
+	pWindowManager->Draw(&sp);
+}
+void CDrawingManager::DrawSpriteCentred(CWindowManager* pWindowManager, sf::Vector2i vPosition, int iWidth, int iHeight, sf::Texture* pTexture)
+{
+	if (!pTexture)
+		return;
+
+	/* Create a renderable sprite */
+	sf::Sprite sp;
+	sp.setTexture(*pTexture);
+	sp.setPosition((float)vPosition.x, (float)vPosition.y);
 
 	sp.setOrigin(pTexture->getSize().x / 2.0f, pTexture->getSize().y / 2.0f);
 
@@ -242,75 +299,116 @@ void CDrawingManager::DrawSpriteCentred(CWindowManager* pWindowManager, Vector2i
 	pWindowManager->Draw(&sp);
 }
 
-void CDrawingManager::DrawSquareCentred(CWindowManager* pWindowManager, Vector2i vPosition, int iSize, unsigned __int8 R, unsigned __int8 G,
+void CDrawingManager::DrawSquareCentred(CWindowManager* pWindowManager, sf::Vector2i vPosition, int iSize, unsigned __int8 R, unsigned __int8 G,
 	unsigned __int8 B, unsigned __int8 A)
 {
 	sf::RectangleShape sq(sf::Vector2f((float)iSize, (float)iSize));
 
 	sq.setOrigin(iSize / 2.0f, iSize / 2.0f);
-	sq.setPosition((float)vPosition.X, (float)vPosition.Y);
+	sq.setPosition((float)vPosition.x, (float)vPosition.y);
 	sq.setFillColor(sf::Color(R, G, B, A));
-	sq.setOutlineThickness(0.0f);
 
 	pWindowManager->Draw(&sq);
 }
-void CDrawingManager::DrawRectangleCentred(CWindowManager* pWindowManager, Vector2i vPosition, int iWidth, int iHeight, unsigned __int8 R, unsigned __int8 G,
+void CDrawingManager::DrawRectangleCentred(CWindowManager* pWindowManager, sf::Vector2i vPosition, int iWidth, int iHeight, unsigned __int8 R, unsigned __int8 G,
 	unsigned __int8 B, unsigned __int8 A)
 {
 	sf::RectangleShape sq(sf::Vector2f((float)iWidth, (float)iHeight));
 
 	sq.setOrigin(iWidth / 2.0f, iHeight / 2.0f);
-	sq.setPosition((float)vPosition.X, (float)vPosition.Y);
+	sq.setPosition((float)vPosition.x, (float)vPosition.y);
 	sq.setFillColor(sf::Color(R, G, B, A));
-	sq.setOutlineThickness(0.0f);
 
 	pWindowManager->Draw(&sq);
 }
 
-void CDrawingManager::DrawOutlinedRectangleCentred(CWindowManager* pWindowManager, Vector2i vPosition, int iWidth, int iHeight, unsigned __int8 R, unsigned __int8 G,
+void CDrawingManager::DrawRectangleCentred(CWindowManager* pWindowManager, sf::Vector2f vPosition, sf::Vector2f size, sf::Color color) {
+	sf::RectangleShape rect(size);
+
+	rect.setOrigin(size / 2.0f);
+	rect.setPosition(vPosition);
+	rect.setFillColor(color);
+
+	pWindowManager->Draw(&rect);
+}
+
+void CDrawingManager::DrawRectangle(CWindowManager* pWindowManager, sf::Vector2f vPosition, sf::Vector2f size, sf::Color color) {
+	sf::RectangleShape rect(size);
+	rect.setPosition(vPosition);
+	rect.setFillColor(color);
+	pWindowManager->Draw(&rect);
+}
+
+void CDrawingManager::DrawOutlinedRectangleCentred(CWindowManager* pWindowManager, sf::Vector2i vPosition, int iWidth, int iHeight, unsigned __int8 R, unsigned __int8 G,
 	unsigned __int8 B, unsigned __int8 A)
 {
 	sf::RectangleShape sq(sf::Vector2f((float)iWidth, (float)iHeight));
 
 	sq.setOrigin(iWidth / 2.0f, iHeight / 2.0f);
-	sq.setPosition((float)vPosition.X, (float)vPosition.Y);
+	sq.setPosition((float)vPosition.x, (float)vPosition.y);
 	sq.setFillColor(sf::Color(R, G, B, A));
 	sq.setOutlineThickness(1.0f);
 
 	pWindowManager->Draw(&sq);
 }
 
-void CDrawingManager::DrawLine(CWindowManager* pWindowManager, Vector2i vStart, Vector2i vEnd, unsigned __int8 R, unsigned __int8 G, unsigned __int8 B, unsigned __int8 A) {
+void CDrawingManager::DrawLine(CWindowManager* pWindowManager, sf::Vector2i vStart, sf::Vector2i vEnd, unsigned __int8 R, unsigned __int8 G, unsigned __int8 B, unsigned __int8 A) {
 	sf::Vertex line[] =
 	{
-		sf::Vertex(sf::Vector2f((float)vStart.X, (float)vStart.Y), sf::Color(R,G,B,A)),
-		sf::Vertex(sf::Vector2f((float)vEnd.X, (float)vEnd.Y), sf::Color(R, G, B, A))
+		sf::Vertex(sf::Vector2f((float)vStart.x, (float)vStart.y), sf::Color(R,G,B,A)),
+		sf::Vertex(sf::Vector2f((float)vEnd.x, (float)vEnd.y), sf::Color(R, G, B, A))
 	};
 	pWindowManager->DrawVertices(line, 2, sf::Lines);
 }
-void CDrawingManager::DrawCircleCentred(CWindowManager* pWindowManager, Vector2i vCentre, float radius, unsigned __int8 R, unsigned __int8 G, unsigned __int8 B, unsigned __int8 A) {
+
+void CDrawingManager::DrawLine(CWindowManager* pWindowManager, sf::Vector2f vStart, sf::Vector2f vEnd, sf::Color col) {
+	sf::Vertex line[] =
+	{
+		sf::Vertex(vStart, col),
+		sf::Vertex(vEnd, col)
+	};
+	pWindowManager->DrawVertices(line, 2, sf::Lines);
+}
+
+void CDrawingManager::DrawCircleCentred(CWindowManager* pWindowManager, sf::Vector2i vCentre, float radius, unsigned __int8 R, unsigned __int8 G, unsigned __int8 B, unsigned __int8 A) {
 	sf::CircleShape c;
-	c.setRadius((float)radius); 
+	c.setRadius(radius); 
 	c.setFillColor(sf::Color(R, G, B, A));
-	c.setPosition((float)vCentre.X, (float)vCentre.Y);
+	c.setPosition((float)vCentre.x, (float)vCentre.y);
 	c.setOrigin(radius / 2.0f, radius / 2.0f);
 	pWindowManager->Draw(&c);
 }
-void CDrawingManager::DrawCircleCentred(CWindowManager* pWindowManager, Vector2f vCentre, float radius, unsigned __int8 R, unsigned __int8 G, unsigned __int8 B, unsigned __int8 A) {
+void CDrawingManager::DrawSolidCircleCentred(CWindowManager* pWindowManager, sf::Vector2f vCentre, float radius, sf::Color color) {
 	sf::CircleShape c;
-	c.setRadius((float)radius);
-	c.setFillColor(sf::Color(R, G, B, A));
-	c.setPosition(vCentre.X, vCentre.Y);
+	c.setRadius(radius);
+	c.setPosition(vCentre);
+	c.setFillColor(color);
 	c.setOrigin(radius / 2.0f, radius / 2.0f);
 	pWindowManager->Draw(&c);
 }
-void CDrawingManager::DrawSquareToTargetCentred(sf::RenderTarget* pTarget, Vector2i vPosition, int iSize, unsigned __int8 R, unsigned __int8 G,
+void CDrawingManager::DrawCircleCentred(CWindowManager* pWindowManager, sf::Vector2f vCentre, float radius, unsigned __int8 R, unsigned __int8 G, unsigned __int8 B, unsigned __int8 A) {
+	sf::CircleShape c;
+	c.setRadius(radius);
+	c.setFillColor(sf::Color(R, G, B, A));
+	c.setPosition(vCentre.x, vCentre.y);
+	c.setOrigin(radius / 2.0f, radius / 2.0f);
+	pWindowManager->Draw(&c);
+}
+void CDrawingManager::DrawCircleCentred(CWindowManager* pWindowManager, sf::Vector2f vCentre, float radius, sf::Color color) {
+	sf::CircleShape c;
+	c.setRadius(radius);
+	c.setFillColor(color);
+	c.setPosition(vCentre);
+	c.setOrigin(radius / 2.0f, radius / 2.0f);
+	pWindowManager->Draw(&c);
+}
+void CDrawingManager::DrawSquareToTargetCentred(sf::RenderTarget* pTarget, sf::Vector2i vPosition, int iSize, unsigned __int8 R, unsigned __int8 G,
 	unsigned __int8 B, unsigned __int8 A)
 {
 	sf::RectangleShape sq(sf::Vector2f((float)iSize, (float)iSize));
 
 	sq.setOrigin(iSize / 2.0f, iSize / 2.0f);
-	sq.setPosition((float)vPosition.X, (float)vPosition.Y);
+	sq.setPosition((float)vPosition.x, (float)vPosition.y);
 	sq.setFillColor(sf::Color(R, G, B, A));
 	sq.setOutlineThickness(0.0f);
 
@@ -338,18 +436,26 @@ void CDrawingManager::DrawSpriteToTargetCentred(sf::RenderTarget* pTarget, int X
 	pTarget->draw(sp);
 }
 
-void CDrawingManager::DrawSquareToTarget(sf::RenderTarget* pTarget, Vector2i vPosition, int iSize, unsigned __int8 R, unsigned __int8 G,
+void CDrawingManager::DrawSquareToTarget(sf::RenderTarget* pTarget, sf::Vector2i vPosition, int iSize, unsigned __int8 R, unsigned __int8 G,
 	unsigned __int8 B, unsigned __int8 A)
 {
 	sf::RectangleShape sq(sf::Vector2f((float)iSize, (float)iSize));
 
-	sq.setPosition((float)vPosition.X, (float)vPosition.Y);
+	sq.setPosition((float)vPosition.x, (float)vPosition.y);
 	sq.setFillColor(sf::Color(R, G, B, A));
 	sq.setOutlineThickness(0.0f);
 
 	pTarget->draw(sq);
 }
-
+void CDrawingManager::DrawTileToTarget(sf::RenderTarget* pTarget, sf::Vector2f pos, int size, const sf::Texture* pTexture) {
+	sf::Sprite sp;
+	sp.setTexture(*pTexture);
+	sp.setPosition(pos);	
+	sf::Vector2u f = pTexture->getSize();
+	sf::Vector2f scale((float)size / f.x, (float)size / f.y);
+	sp.setScale(scale);
+	pTarget->draw(sp);
+}
 void CDrawingManager::DrawSpriteToTarget(sf::RenderTarget* pTarget, int X, int Y, int iWidth, int iHeight, sf::Texture* pTexture)
 {
 	if (!pTexture)

@@ -1,8 +1,5 @@
 #include "stdafx.h"
 #include "CIniWriter.h"
-#include <stdlib.h>
-#include <fstream>
-#include <string>
 
 void CIniWriter::ClearItems() {
 	m_Items.clear();

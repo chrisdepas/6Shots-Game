@@ -8,30 +8,29 @@ bool CProjectile::ShouldHit(CBaseEntity* pEntity) {
 }
 
 void CProjectile::Draw(CGame* pGame) {
-	Vector2f d; d.X = m_vStartPosition.X - m_vLocation.X; d.Y = m_vStartPosition.Y - m_vLocation.Y;
-	Vector2f front = m_vLocation - m_vStartPosition;
-	front.LimitLength(30);
-//	pGame->m_Drawing.DrawRectangleCentred(pGame->GetWindowMgr(), GetPosition2i(), 3, 3, 100, 100, 0, 255);
-	pGame->m_Drawing.DrawLine(pGame->GetWindowMgr(), Vector2i(m_vLocation.X+front.X, m_vLocation.Y+front.Y), Vector2i(m_vLocation.X, m_vLocation.Y), 255, 240, 0, 255);
+	sf::Vector2f front = m_vLocation - m_vStartPosition;
+	if (front.x == 0 && front.y == 0)
+		return;
+	vec::LimitLength(front, 30);
+	pGame->m_Drawing.DrawLine(pGame->GetWindowMgr(), m_vLocation + front, m_vLocation, sf::Color::Yellow);
 }
 
 void CProjectile::UpdatePosition() {
 	m_vLocation = m_BulletPhysics.GetPosition();
 }
 
-CProjectile::CProjectile(int iDamage, int iRange, int iID, CBaseEntity* pOwner, Vector2f vLocation, Vector2f vVelocity) {
+CProjectile::CProjectile(int iDamage, int iRange, int iID, CBaseEntity* pOwner, sf::Vector2f vLocation, sf::Vector2f vVelocity) {
 	m_iDamage = iDamage;
 	m_iRange = iRange;
 	m_pOwner = pOwner;
 	m_vLocation = vLocation;
 	m_vStartPosition = vLocation;
 	m_vVelocity = vVelocity;
-
 	m_iID = iID;
 }
 
-void CProjectile::Init(CWorldPhysics* pPhysics, Vector2f vLocation, Vector2f vVelocity) {
-	m_BulletPhysics.InitPhysics(pPhysics, (int)vLocation.X, (int)vLocation.Y, 1, 1, CEntityPhysics::CATEGORY_BULLET,
+void CProjectile::Init(CWorldPhysics* pPhysics, sf::Vector2f vLocation, sf::Vector2f vVelocity) {
+	m_BulletPhysics.InitPhysics(pPhysics, (int)vLocation.x, (int)vLocation.y, 1, 1, CEntityPhysics::CATEGORY_BULLET,
 		CEntityPhysics::CATEGORY_PLAYER_PICKUP | CEntityPhysics::CATEGORY_BULLET | CEntityPhysics::CATEGORY_BULLET, m_iID);
 
 	m_BulletPhysics.SetVelocity(vVelocity);

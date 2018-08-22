@@ -22,7 +22,7 @@
 
 
 /* PLAYERS */
-#define ASSET_PLAYER_TEXTURE "./ASSETS/player"
+#define ASSET_PLAYER_TEXTURE "./ASSETS/playerNew"
 #define ASSET_NPC_TEXTURE "./ASSETS/NPCRed"
 #define ASSET_PLAYER_HAND "./ASSETS/Hand.png"
 

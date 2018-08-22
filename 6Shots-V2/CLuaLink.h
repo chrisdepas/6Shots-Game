@@ -1,7 +1,5 @@
 #ifndef __CLUALINK_H__
 #define __CLUALINK_H__
-#include <lua.hpp>
-#include <vector>
 
 /*
 	Christopher De Pasquale

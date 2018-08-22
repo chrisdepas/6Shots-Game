@@ -16,19 +16,19 @@ public:
 
 	bool CanCreateCasing() { return false; };
 
-	CSpentCasingEffect* CreateCasingEffect(CWorldPhysics* pPhysics, Vector2i vPos, Vector2f vEjectDirection, float fEjectRotation) { 
+	CSpentCasingEffect* CreateCasingEffect(CWorldPhysics* pPhysics, sf::Vector2i vPos, sf::Vector2f vEjectDirection, float fEjectRotation) {
 		CDebugLogger::LogError("[MELEEWEAPON] CreateCasingEffect called on non-projectile weapon!\n"); 
 		return new CSpentCasingEffect(); 
 	};
 
-	Vector2f GetCasingCreateOffset() {
+	sf::Vector2f GetCasingCreateOffset() {
 		CDebugLogger::LogError("[MELEEWEAPON] GetCasingCreateOffset called on non-projectile weapon!\n");
-		return Vector2f(0.0f, 0.0f);
+		return sf::Vector2f(0.0f, 0.0f);
 	}
 
-	Vector2f GetCasingEjectDirection() {
+	sf::Vector2f GetCasingEjectDirection() {
 		CDebugLogger::LogError("[MELEEWEAPON] GetCasingEjectDirection called on non-projectile weapon!\n");
-		return Vector2f(0.0f, 0.0f);
+		return sf::Vector2f(0.0f, 0.0f);
 	}
 
 	float GetRandomRecoil(CGame* pGame) override { return 0.0f; }

@@ -1,50 +1,81 @@
 #ifndef __CWINDOWMANAGER_H__
 #define __CWINDOWMANAGER_H__
-#include "Vector.h"
-#include <SFML/Graphics.hpp>
+
 #include "CSettings.h"
 #include "CInput.h"
-#include <TGUI\TGUI.hpp>
+#include "CShaderManager.h"
+#include "FPSCounter.h"
 
 class CWindowManager
 {
-	Vector2i m_vSize;
-	bool m_bWindowCreated;
-	bool m_bFocus;
-	sf::RenderWindow* m_pWindow;
-	bool m_bWindowClosed;
-	tgui::Gui* m_pGUI;
-	bool m_bGUIActive;
+	sf::Vector2i m_vSize = sf::Vector2i(0, 0);
+	bool m_bWindowCreated = false, m_bWindowClosed = false;
+	bool m_bFocus = true, m_bGUIActive = false;
+
+	FPSCounter m_FPS;
+	sf::Font m_FPSFont;
+	sf::Text m_FPSText;
+	int m_LastFPS = -1;
+
+	tgui::Gui* m_pGUI = NULL;
+	sf::RenderWindow m_Window;
+	CShaderManager m_Shaders;
+
+	void DrawFPS();
 
 public:
 	CWindowManager();
-	~CWindowManager();
+
+	//	Create window with supplied (and assumed sanitized!) settings
 	void Create(CSettings* Settings, char* szTitle);
+	//	Create window with supplied (and assumed sanitized!) settings again 
 	void ReCreate(CSettings* pSettings, char* szTitle);
+
+	// Update window
 	void HandleEvents(CInput* pInput);
+
 	sf::RenderWindow* GetWindow();
 
-	/* Begin drawing */
+	void Resize(sf::Vector2i vSize);
+
+	/* Start/End drawing */
 	void Begin();
-	/* Present scene */
 	void Present();
+
+	void CloseWindow();
 
 	bool WindowClosed();
 	bool HasFocus();
-	Vector2i GetScreenCentre();
-	Vector2i GetScreenDimensions();
+
+	// Half of screen size
+	sf::Vector2i GetScreenCentre();
+	sf::Vector2f GetScreenCentre2f();
+
+	// Screen size 
+	sf::Vector2i GetScreenDimensions();
+	sf::Vector2f GetScreenDimensions2f();
+
+	// Camera centre position 
+	sf::Vector2f GetViewCentre();
+
+	sf::Vector2f GetViewSize() { return m_Window.getView().getSize(); }
+
+	// Get view for GUI centred in middle of screen, at dimensions of screen
+	sf::View GetGUIView() { return sf::View(GetScreenCentre2f(), GetScreenDimensions2f()); }
 
 	void Draw(sf::Drawable* Item);
 	void DrawVertices(sf::Vertex* vertices, int count, sf::PrimitiveType type);
 	void RestoreDefaultCamera();
-	void MoveCamera(Vector2f CentrePos);
+	void MoveCamera(sf::Vector2f CentrePos);
 
-	/* GUI functions */
+	// GUI functions 
 	void SetGUI(tgui::Gui* pGUI);
 	void SetGUIActive(bool bActive);
+	void ToggleGUI();
 	bool IsGUIActive();
+	void RemoveGUI(); 
 
-	Vector2i ScreenToWorld(Vector2i screenPos);
+	sf::Vector2i ScreenToWorld(sf::Vector2i screenPos);
 };
 
 #endif

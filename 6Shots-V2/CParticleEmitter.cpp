@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "CParticleEmitter.h"
 
-CParticleEmitter::CParticleEmitter(Vector2f position, int rate, float speed, float angle, float angleDeviation, float startSize, float endSize, 
+CParticleEmitter::CParticleEmitter(sf::Vector2f position, int rate, float speed, float angle, float angleDeviation, float startSize, float endSize, 
 	float curTime, sf::Color startColor, sf::Color endColor, float lifespan, CBaseEntity* pAttachEnt) {
 	m_bTemporary = lifespan == -1.0f;
 	if (m_bTemporary) {
@@ -19,7 +19,7 @@ CParticleEmitter::CParticleEmitter(Vector2f position, int rate, float speed, flo
 	m_pAttachEnt = pAttachEnt;
 }
 void CParticleEmitter::Draw(CGame* pGame) {
-	Vector2f pos;
+    sf::Vector2f pos;
 	for (unsigned int i = 0; i < m_vParticles.size(); i++) {
 
 	}

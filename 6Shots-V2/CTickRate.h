@@ -1,7 +1,6 @@
 #ifndef __CTICKRATE_H__
 #define __CTICKRATE_H__
 
-#include "SFML\System\Clock.hpp"
 class CTickRate {
 	bool m_bInit;
 	float m_fTickRate; 

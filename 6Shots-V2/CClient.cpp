@@ -233,7 +233,7 @@ void CClient::RemoveNetworkListener(INetworkListener* pListener) {
 	SetNetworkListener(0);
 }
 
-void CClient::SendTick(Vector2f vPlayerPos, Vector2f vHandPos, float fHandRotation, bool bFacingLeft, bool bWalking) {
+void CClient::SendTick(sf::Vector2f vPlayerPos, sf::Vector2f vHandPos, float fHandRotation, bool bFacingLeft, bool bWalking) {
 	if (!IsConnected())
 		return;
 
@@ -248,7 +248,7 @@ void CClient::SendMousepressEvent() {
 	SendServerPacket(p);
 }
 
-void CClient::SendRightMousepressEvent(Vector2f vThrowVelocity) {
+void CClient::SendRightMousepressEvent(sf::Vector2f vThrowVelocity) {
 	if (!IsConnected())
 		return;
 	C6SPacket p = C6SNetwork::CClientPlayerInputEvent::Create(m_Connection.uuid, C6SNetwork::EVENT_THROW, vThrowVelocity);

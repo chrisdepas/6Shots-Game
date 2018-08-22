@@ -1,6 +1,5 @@
 #ifndef __CINIWRITER_H__
 #define __CINIWRITER_H__
-#include <vector>
 
 /*
 Michael & Christopher De Pasquale

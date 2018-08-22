@@ -2,7 +2,6 @@
 #define __C6SMULTIPLAYERSTATE_H__
 
 #include "CGameState.h"
-#include <TGUI\TGUI.hpp>
 #include "IEventListener.h"
 
 class C6SMultiplayerState : public CGameState, public IEventListener {
@@ -13,8 +12,13 @@ class C6SMultiplayerState : public CGameState, public IEventListener {
 
 	/* Map storage struct */
 	struct SMapInstance {
-		std::string sMapPath;		// Full path
-		std::string sMapDisplayName;// Nice name
+		std::string sPath;		// Full path
+		std::string sDisplayName;// Nice name
+		SMapInstance(const std::string& path, const std::string& displayName) {
+			sPath = path;
+			sDisplayName = displayName;
+		}
+		SMapInstance() {}
 	};
 	/* Maps */
 	std::vector<SMapInstance> m_vMaps;
@@ -29,25 +33,17 @@ public:
 	void C6SMultiplayerState::Cleanup(CGame* pGame);
 
 	void C6SMultiplayerState::Draw(CGame* pGame);
-	void C6SMultiplayerState::Update(CGame* pGame);
+	void C6SMultiplayerState::Update(CGame* pGame, float fFrameTime);
 	void C6SMultiplayerState::HandleInput(CGame* pGame);
 
 	void C6SMultiplayerState::PauseState();
 	void C6SMultiplayerState::ResumeState();
 
-	// Connect to a server
+	// GUI Callbacks
 	void C6SMultiplayerState::Connect(CGame* pGame);
-
-	// Start a local server
 	void C6SMultiplayerState::StartServer(CGame* pGame);
-
-	// Launch game
 	void C6SMultiplayerState::LaunchGame(CGame* pGame);
-
-	/* Change map */
 	void C6SMultiplayerState::OnMapSelected(CGame* pGame);
-
-	/* Chat */
 	void C6SMultiplayerState::OnChatMessage(IEventListener::SChatEvent* pChatEvent);
 	void C6SMultiplayerState::SendChatMessage(CGame* pGame);
 

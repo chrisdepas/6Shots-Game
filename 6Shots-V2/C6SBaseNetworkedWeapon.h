@@ -9,6 +9,7 @@
 #include "CBaseCombatEntity.h"
 #include "CBaseWeapon.h"
 #include "CAnimatedSprite.h"
+
 class C6SBaseNetworkedWeapon : public CBaseWeapon {
 	/* Network ID */
 	int m_iEntityID;

@@ -1,6 +1,6 @@
 #ifndef __CINIREADER_H__
 #define __CINIREADER_H__
-#include <vector>
+
 #include "CIniItem.h"
 
 /*

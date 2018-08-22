@@ -6,8 +6,6 @@
 	2015
 	Noticed added feb 2017
 */
-
-#include <SFML\Audio.hpp>
 class CSoundItem {
 
 private:

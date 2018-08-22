@@ -2,7 +2,6 @@
 #define __C6SMULTIPLAYERGAMESTATE_H__
 
 #include "CGameState.h"
-#include <TGUI\TGUI.hpp>
 #include "IEventListener.h"
 #include "C6SMap.h"
 #include "CWorldPhysics.h"
@@ -14,12 +13,13 @@
 #include "C6SBaseNetworkedWeapon.h"
 #include "CGoreEngine.h"
 #include "CEventScheduler.h"
+
 /*	Multiplayer Game 
  *  Versus mode state 
  */ 
 class C6SMultiplayerGameState : public CGameState, public IEventListener, public INetworkListener {
 	tgui::Gui* m_pGui;
-	C6SMap m_Map;
+	C6SReleaseMap m_Map;
 	C6SPlayer m_Player;
 	CWorldPhysics m_Physics; 
 	CProjectileManager m_Projectiles;
@@ -75,8 +75,8 @@ class C6SMultiplayerGameState : public CGameState, public IEventListener, public
 	EMultiplayerGameState m_eCurState;
 
 	/* Handlers for player damage/death */
-	void HandlePlayerDamage(CGame* pGame, int playerID, Vector2f& vPosition, Vector2f& vVelocity, int iDamageAmount);
-	void HandlePlayerDeath(CGame* pGame, int playerID, Vector2f& vPosition, Vector2f& vVelocity);
+	void HandlePlayerDamage(CGame* pGame, int playerID, sf::Vector2f& vPosition, sf::Vector2f& vVelocity, int iDamageAmount);
+	void HandlePlayerDeath(CGame* pGame, int playerID, sf::Vector2f& vPosition, sf::Vector2f& vVelocity);
 
 	/* Console command handler */
 	void HandleConsoleCommand(CGame* pGame, int playerID, int eCmd);
@@ -95,7 +95,7 @@ public:
 	void C6SMultiplayerGameState::Cleanup(CGame* pGame);
 
 	void C6SMultiplayerGameState::Draw(CGame* pGame);
-	void C6SMultiplayerGameState::Update(CGame* pGame);
+	void C6SMultiplayerGameState::Update(CGame* pGame, float fFrameTime);
 	void C6SMultiplayerGameState::HandleInput(CGame* pGame);
 
 	void C6SMultiplayerGameState::PauseState();
@@ -107,18 +107,18 @@ public:
 	void C6SMultiplayerGameState::OnEvent(CGame* pGame, std::string evtName, void* data, size_t len);
 
 	/* Network listen callbacks */
-	void C6SMultiplayerGameState::OnTick(CGame* pGame, int iClientID, Vector2f vPosition, Vector2f vHandPosition, float fHandRotation, bool bLeftFacing, bool bWalking);
-	void C6SMultiplayerGameState::OnRemoteEntityCreate(CGame* pGame, int iEntityID, int iType, Vector2f vCreatePos, float fCreateAngle, int iInstanceID, int iClientGiveID);
+	void C6SMultiplayerGameState::OnTick(CGame* pGame, int iClientID, sf::Vector2f vPosition, sf::Vector2f vHandPosition, float fHandRotation, bool bLeftFacing, bool bWalking);
+	void C6SMultiplayerGameState::OnRemoteEntityCreate(CGame* pGame, int iEntityID, int iType, sf::Vector2f vCreatePos, float fCreateAngle, int iInstanceID, int iClientGiveID);
 	void C6SMultiplayerGameState::OnRoundStart(CGame* pGame);
 	void C6SMultiplayerGameState::OnPlayerMousePress(CGame* pGame, int clientID);
 	void C6SMultiplayerGameState::OnPlayerThrow(CGame* pGame, int clientID);
 	void C6SMultiplayerGameState::OnPlayerPickupWeapon(CGame* pGame, int clientID, int entityID);
-	void C6SMultiplayerGameState::OnPlayerThrowWeapon(CGame* pGame, int clientID, Vector2f vPosition, Vector2f vVelocity, float fThrowRotation);
-	void C6SMultiplayerGameState::OnPlayerRightMousePress(CGame* pGame, int iClientID, Vector2f vThrowVelocity, float fThrowRotation);
-	void C6SMultiplayerGameState::OnPlayerShootWeapon(CGame* pGame, int clientID, Vector2f vPosition, Vector2f vVelocity, int projectileID);
+	void C6SMultiplayerGameState::OnPlayerThrowWeapon(CGame* pGame, int clientID, sf::Vector2f vPosition, sf::Vector2f vVelocity, float fThrowRotation);
+	void C6SMultiplayerGameState::OnPlayerRightMousePress(CGame* pGame, int iClientID, sf::Vector2f vThrowVelocity, float fThrowRotation);
+	void C6SMultiplayerGameState::OnPlayerShootWeapon(CGame* pGame, int clientID, sf::Vector2f vPosition, sf::Vector2f vVelocity, int projectileID);
 	void C6SMultiplayerGameState::OnPlayerDryFire(CGame* pGame, int clientID);
-	void C6SMultiplayerGameState::OnPlayerDamage(CGame* pGame, int iClientID, Vector2f vDamagePosition, Vector2f vDamageVelocity, int iDamageAmount);
-	void C6SMultiplayerGameState::OnPlayerDeath(CGame* pGame, int iClientID, Vector2f vDeathDamagePosition, Vector2f vDamageVelocity);
+	void C6SMultiplayerGameState::OnPlayerDamage(CGame* pGame, int iClientID, sf::Vector2f vDamagePosition, sf::Vector2f vDamageVelocity, int iDamageAmount);
+	void C6SMultiplayerGameState::OnPlayerDeath(CGame* pGame, int iClientID, sf::Vector2f vDeathDamagePosition, sf::Vector2f vDamageVelocity);
 	void C6SMultiplayerGameState::OnPlayerCommand(CGame* pGame, int iClientID, int eConCmd);
 	void C6SMultiplayerGameState::OnBroadcastMessage(CGame* pGame, float fTime, std::string& sMessage);
 	void C6SMultiplayerGameState::OnRoundReset(CGame* pGame);

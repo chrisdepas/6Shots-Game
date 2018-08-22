@@ -10,7 +10,6 @@
 #include "C6SBaseNetworkedWeapon.h"
 #include "C6SMap.h"
 #include "CSpentCasingEffect.h" // Might change this up to be CPhysicalEffect if i make any more types 
-#include <vector>
 class CGame;
 class CBaseNPC;
 
@@ -41,8 +40,8 @@ public:
 	/* Weapon functions */
 	void AddWeapon(C6SBaseNetworkedWeapon* pWeapon);
 	void RemoveWeapon(C6SBaseNetworkedWeapon* pWeapon);
-	C6SBaseNetworkedWeapon* ClosestWeapon(Vector2i pos, float maxDist);
-	C6SBaseNetworkedWeapon* ClosestWeapon(Vector2f pos, float maxDist);
+	C6SBaseNetworkedWeapon* ClosestWeapon(sf::Vector2i pos, float maxDist);
+	C6SBaseNetworkedWeapon* ClosestWeapon(sf::Vector2f pos, float maxDist);
 	C6SBaseNetworkedWeapon* GetWeaponByID(int iWeaponID);
 
 	/* Spent casings */

@@ -8,8 +8,10 @@ enum EAction {
 	Action_Jump,
 	Action_Duck,
 	Action_Menu_Toggle,
+	Action_Console_Toggle,
 	Action_Sprint,
 	Action_Show_Chat,
 	Action_Last, // LEAVE THIS AS THE LAST ACTION OR GAME WON'T FUNCTION
 };
+
 #endif

@@ -9,9 +9,6 @@
 	Storage of variables which are only important locally.
 */
 
-																	
-#include <string>
-
 template <typename T>
 struct SGlobalVar {
 	std::string m_sVarStr;
